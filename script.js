@@ -211,10 +211,6 @@ function createNameSelect(dayIndex, role, rowIndex){
 
   select.addEventListener("change", function(){
     updateTotals();
-
-    if(role === "hall"){
-      autoFillHallTime(dayIndex, rowIndex, select.value);
-    }
   });
 
   return select;
@@ -359,14 +355,6 @@ async function saveWeeklySchedule(){
   }
 }
 
-function escapeHtml(value){
-  return String(value || "")
-    .replaceAll("&", "&amp;")
-    .replaceAll("<", "&lt;")
-    .replaceAll(">", "&gt;")
-    .replaceAll('"', "&quot;")
-    .replaceAll("'", "&#039;");
-}
 async function loadPreviousWeekPattern() {
   const monday = document.getElementById("mondayInput").value;
 
@@ -396,7 +384,7 @@ async function loadPreviousWeekPattern() {
       return;
     }
 
-    applyPreviousPatternToTable(data.data.schedule);
+    applyWeeklyScheduleToTable(data.data.schedule);
 
     alert("전주 패턴을 불러왔습니다. 현재 주간 D/O 직원은 자동 제외되었습니다.");
 
@@ -408,99 +396,6 @@ async function loadPreviousWeekPattern() {
   }
 }
 
-function applyPreviousPatternToTable(schedule) {
-  Object.keys(schedule || {}).forEach(function(dayIndex) {
-    const dayData = schedule[dayIndex] || {};
-
-    ["hall", "kitchen", "prep", "exit", "wash"].forEach(function(role) {
-      const items = dayData[role] || [];
-
-      const nameSelects = Array.from(
-        document.querySelectorAll(
-          `.name-select[data-day-index="${dayIndex}"][data-role="${role}"]`
-        )
-      );
-
-      const timeSelects = Array.from(
-        document.querySelectorAll(
-          `.time-select[data-day-index="${dayIndex}"][data-role="${role}"]`
-        )
-      );
-
-      nameSelects.forEach(function(select, index) {
-        const item = items[index] || {};
-        setSelectValue_(select, item.name || "");
-      });
-
-      timeSelects.forEach(function(select, index) {
-        const item = items[index] || {};
-        setSelectValue_(select, item.time || "");
-      });
-    });
-  });
-
-  updateTotals();
-}
-
-function setSelectValue_(select, value) {
-  if (!select) return;
-
-  const exists = Array.from(select.options).some(function(opt) {
-    return opt.value === value;
-  });
-
-  if (exists) {
-    select.value = value;
-  } else {
-    select.value = "";
-  }
-}
-function autoFillHallTime(dayIndex, rowIndex, staffName){
-  if(!staffName) return;
-
-  const timeSelect = document.querySelector(
-    `.time-select[data-day-index="${dayIndex}"][data-row-index="${rowIndex}"]`
-  );
-
-  if(!timeSelect) return;
-
-  const defaultTime = getHallDefaultTimeByRow(rowIndex);
-
-  if(!defaultTime) return;
-
-  setSelectValue_(timeSelect, defaultTime);
-}
-
-function getHallDefaultTimeByRow(rowIndex){
-  const row = ROWS[rowIndex];
-
-  if(!row || row.role !== "hall") return "";
-
-  const label = row.label;
-
-  if(label === "총괄") return "";
-  if(label === "티카(M1)") return "10:00-19:00";
-  if(label === "티카(S1)") return "10:00-18:00";
-  if(label === "티카(M2)") return "18:00-21:00";
-  if(label === "티카(S2)") return "18:00-21:00";
-  if(label === "티카(H)") return "11:00-20:00";
-
-  if(label === "serving") return "10:00-21:00";
-
-  return "";
-}
-
-function setSelectValue_(select, value){
-  if(!select) return;
-
-  const exists = Array.from(select.options).some(function(opt){
-    return opt.value === value;
-  });
-
-  if(exists){
-    select.value = value;
-  }
-}
 async function loadCurrentWeeklySchedule() {
   const monday = document.getElementById("mondayInput").value;
 
@@ -585,4 +480,13 @@ function setSelectValue_(select, value) {
   } else {
     select.value = "";
   }
+}
+
+function escapeHtml(value){
+  return String(value || "")
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#039;");
 }
