@@ -533,3 +533,25 @@ function escapeHtml(value){
     .replaceAll('"', "&quot;")
     .replaceAll("'", "&#039;");
 }
+async function generateNextWeekSchedule() {
+
+    if (!confirm("다음주 근무표를 자동 생성하시겠습니까?")) {
+        return;
+    }
+
+    // 다음주로 이동
+    const mondayInput = document.getElementById("mondayInput");
+
+    const d = new Date(mondayInput.value);
+    d.setDate(d.getDate() + 7);
+
+    mondayInput.value = formatDateInput(d);
+
+    // 직원목록 새로 불러오기
+    await loadStaffOptions();
+
+    // 전주 패턴 자동 복사
+    await loadPreviousWeekPattern();
+
+    alert("다음주 근무표가 생성되었습니다.\nD/O 직원은 자동 제외되었습니다.");
+}
