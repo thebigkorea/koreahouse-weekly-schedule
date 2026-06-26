@@ -232,19 +232,37 @@ function createTimeSelect(dayIndex, role, rowIndex){
 
 function updateTotals(){
   for(let dayIndex = 0; dayIndex < 7; dayIndex++){
-    const hallCount = document.querySelectorAll(`.name-select[data-day-index="${dayIndex}"][data-role="hall"]`)
-      ? Array.from(document.querySelectorAll(`.name-select[data-day-index="${dayIndex}"][data-role="hall"]`)).filter(s => s.value).length
-      : 0;
 
-    const kitchenCount =
-      Array.from(document.querySelectorAll(`.name-select[data-day-index="${dayIndex}"][data-role="kitchen"]`)).filter(s => s.value).length +
-      Array.from(document.querySelectorAll(`.name-select[data-day-index="${dayIndex}"][data-role="prep"]`)).filter(s => s.value).length;
+    const hallNames = Array.from(
+      document.querySelectorAll(
+        `.name-select[data-day-index="${dayIndex}"][data-role="hall"]`
+      )
+    )
+    .map(s => s.value.trim())
+    .filter(Boolean);
 
-    const hallCell = document.querySelector(`[data-total="hallTotal"][data-day-index="${dayIndex}"]`);
-    const kitchenCell = document.querySelector(`[data-total="kitchenTotal"][data-day-index="${dayIndex}"]`);
+    const kitchenNames = Array.from(
+      document.querySelectorAll(
+        `.name-select[data-day-index="${dayIndex}"][data-role="kitchen"], 
+         .name-select[data-day-index="${dayIndex}"][data-role="prep"]`
+      )
+    )
+    .map(s => s.value.trim())
+    .filter(Boolean);
 
-    if(hallCell) hallCell.textContent = hallCount;
-    if(kitchenCell) kitchenCell.textContent = kitchenCount;
+    const hallUniqueCount = new Set(hallNames).size;
+    const kitchenUniqueCount = new Set(kitchenNames).size;
+
+    const hallCell = document.querySelector(
+      `[data-total="hallTotal"][data-day-index="${dayIndex}"]`
+    );
+
+    const kitchenCell = document.querySelector(
+      `[data-total="kitchenTotal"][data-day-index="${dayIndex}"]`
+    );
+
+    if(hallCell) hallCell.textContent = hallUniqueCount;
+    if(kitchenCell) kitchenCell.textContent = kitchenUniqueCount;
   }
 }
 
