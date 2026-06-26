@@ -495,3 +495,88 @@ function setSelectValue_(select, value){
     select.value = value;
   }
 }
+async function loadCurrentWeeklySchedule() {
+  const monday = document.getElementById("mondayInput").value;
+
+  if (!monday) {
+    alert("주간 시작일을 선택하세요.");
+    return;
+  }
+
+  showLoading(true);
+
+  try {
+    const url =
+      `${API_URL}?action=getWeeklySchedule&monday=${encodeURIComponent(monday)}&t=${Date.now()}`;
+
+    const res = await fetch(url);
+    const data = await res.json();
+
+    if (!data.ok) {
+      throw new Error(data.message || "기존 근무표 조회 실패");
+    }
+
+    if (!data.data.found) {
+      alert(data.data.message || "해당 주간 근무표가 없습니다.");
+      return;
+    }
+
+    applyWeeklyScheduleToTable(data.data.schedule);
+
+    alert("기존 근무표를 불러왔습니다.");
+
+  } catch (err) {
+    console.error(err);
+    alert("기존 근무표를 불러오지 못했습니다.");
+  } finally {
+    showLoading(false);
+  }
+}
+
+function applyWeeklyScheduleToTable(schedule) {
+  Object.keys(schedule || {}).forEach(function(dayIndex) {
+    const dayData = schedule[dayIndex] || {};
+
+    ["hall", "kitchen", "prep", "exit", "wash"].forEach(function(role) {
+      const items = dayData[role] || [];
+
+      const nameSelects = Array.from(
+        document.querySelectorAll(
+          `.name-select[data-day-index="${dayIndex}"][data-role="${role}"]`
+        )
+      );
+
+      const timeSelects = Array.from(
+        document.querySelectorAll(
+          `.time-select[data-day-index="${dayIndex}"][data-role="${role}"]`
+        )
+      );
+
+      nameSelects.forEach(function(select, index) {
+        const item = items[index] || {};
+        setSelectValue_(select, item.name || "");
+      });
+
+      timeSelects.forEach(function(select, index) {
+        const item = items[index] || {};
+        setSelectValue_(select, item.time || "");
+      });
+    });
+  });
+
+  updateTotals();
+}
+
+function setSelectValue_(select, value) {
+  if (!select) return;
+
+  const exists = Array.from(select.options).some(function(opt) {
+    return opt.value === value;
+  });
+
+  if (exists) {
+    select.value = value;
+  } else {
+    select.value = "";
+  }
+}
