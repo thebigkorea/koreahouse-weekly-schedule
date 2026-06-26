@@ -264,7 +264,7 @@ function updateTotals(){
     if(hallCell) hallCell.textContent = hallUniqueCount;
     if(kitchenCell) kitchenCell.textContent = kitchenUniqueCount;
   }
-}
+}   
 
 function renderDayOffSummary(){
   const summary = document.getElementById("dayOffSummary");
@@ -354,4 +354,92 @@ function escapeHtml(value){
     .replaceAll(">", "&gt;")
     .replaceAll('"', "&quot;")
     .replaceAll("'", "&#039;");
+}
+async function loadPreviousWeekPattern() {
+  const monday = document.getElementById("mondayInput").value;
+
+  if (!monday) {
+    alert("주간 시작일을 선택하세요.");
+    return;
+  }
+
+  const ok = confirm("전주 근무 패턴을 불러올까요? 현재 입력한 내용은 덮어씌워집니다.");
+  if (!ok) return;
+
+  showLoading(true);
+
+  try {
+    const url =
+      `${API_URL}?action=getPreviousWeekSchedule&monday=${encodeURIComponent(monday)}&t=${Date.now()}`;
+
+    const res = await fetch(url);
+    const data = await res.json();
+
+    if (!data.ok) {
+      throw new Error(data.message || "전주 패턴 조회 실패");
+    }
+
+    if (!data.data.found) {
+      alert(data.data.message || "전주 근무표가 없습니다.");
+      return;
+    }
+
+    applyPreviousPatternToTable(data.data.schedule);
+
+    alert("전주 패턴을 불러왔습니다. 현재 주간 D/O 직원은 자동 제외되었습니다.");
+
+  } catch (err) {
+    console.error(err);
+    alert("전주 패턴을 불러오지 못했습니다.");
+  } finally {
+    showLoading(false);
+  }
+}
+
+function applyPreviousPatternToTable(schedule) {
+  Object.keys(schedule || {}).forEach(function(dayIndex) {
+    const dayData = schedule[dayIndex] || {};
+
+    ["hall", "kitchen", "prep", "exit", "wash"].forEach(function(role) {
+      const items = dayData[role] || [];
+
+      const nameSelects = Array.from(
+        document.querySelectorAll(
+          `.name-select[data-day-index="${dayIndex}"][data-role="${role}"]`
+        )
+      );
+
+      const timeSelects = Array.from(
+        document.querySelectorAll(
+          `.time-select[data-day-index="${dayIndex}"][data-role="${role}"]`
+        )
+      );
+
+      nameSelects.forEach(function(select, index) {
+        const item = items[index] || {};
+        setSelectValue_(select, item.name || "");
+      });
+
+      timeSelects.forEach(function(select, index) {
+        const item = items[index] || {};
+        setSelectValue_(select, item.time || "");
+      });
+    });
+  });
+
+  updateTotals();
+}
+
+function setSelectValue_(select, value) {
+  if (!select) return;
+
+  const exists = Array.from(select.options).some(function(opt) {
+    return opt.value === value;
+  });
+
+  if (exists) {
+    select.value = value;
+  } else {
+    select.value = "";
+  }
 }
