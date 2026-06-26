@@ -3,11 +3,14 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
   <title>한국의집 주간 스케줄표 작성</title>
   <meta name="description" content="한국의집 주간 스케줄표 작성 포털" />
   <meta name="theme-color" content="#8a5a2b" />
+
   <link rel="stylesheet" href="./style.css" />
 </head>
+
 <body>
   <header class="topbar">
     <div class="brand">
@@ -21,42 +24,51 @@
     <div class="top-actions">
       <button type="button" onclick="loadStaffOptions()">직원목록 새로고침</button>
       <button type="button" onclick="saveWeeklySchedule()" class="primary">구글시트 저장</button>
+      <button type="button" onclick="window.print()">인쇄</button>
     </div>
   </header>
 
   <main class="wrap">
-    <section class="hero-card">
+    <section class="hero">
       <div>
         <p class="eyebrow">WEEKLY SCHEDULE PORTAL</p>
-        <h1>주간 근무표를<br>쉽고 정확하게 작성합니다</h1>
-        <p class="desc">
-          근무스케줄관리의 D/O 직원을 자동 제외하고,
-          홀·주방·전처리·퇴식·설거지별로 주간 스케줄을 작성합니다.
+        <h1>한국의집 주간 근무표</h1>
+        <p>
+          현재 구글시트 주간 근무표와 같은 형태로 작성합니다.
+          근무스케줄관리에서 D/O인 직원은 해당 날짜의 직원 선택 목록에서 제외됩니다.
         </p>
       </div>
 
-      <div class="week-panel">
-        <label for="mondayInput">주간 시작일 월요일</label>
+      <div class="week-box">
+        <label for="mondayInput">주간 시작일</label>
         <input type="date" id="mondayInput" />
-        <button type="button" onclick="setThisWeek()">이번주</button>
-        <button type="button" onclick="setNextWeek()">다음주</button>
-        <button type="button" onclick="window.print()">인쇄</button>
+        <div class="week-buttons">
+          <button type="button" onclick="setThisWeek()">이번주</button>
+          <button type="button" onclick="setNextWeek()">다음주</button>
+        </div>
       </div>
     </section>
 
-    <section class="notice-box">
-      <strong>작성 안내</strong>
-      <span>
-        날짜를 선택하면 해당 주간의 직원 후보를 불러옵니다.
-        근무스케줄관리에서 D/O로 등록된 직원은 해당 날짜 선택 목록에서 제외됩니다.
-      </span>
+    <section class="notice">
+      <strong>작성 방식</strong>
+      <span>구글시트와 동일하게 왼쪽은 구분, 오른쪽은 월~일 직원/시간 칸으로 구성됩니다.</span>
     </section>
 
-    <section id="loadingBox" class="loading-box hidden">
-      직원 목록을 불러오는 중입니다...
-    </section>
+    <section id="loadingBox" class="loading hidden">직원목록을 불러오는 중입니다...</section>
 
-    <section id="scheduleArea" class="schedule-area"></section>
+    <section class="table-card">
+      <div class="table-head">
+        <h2 id="scheduleTitle">한국의집 주간 근무표</h2>
+        <p id="dayOffSummary">D/O 제외 직원 확인 중</p>
+      </div>
+
+      <div class="table-scroll">
+        <table id="scheduleTable" class="schedule-table">
+          <thead id="scheduleHead"></thead>
+          <tbody id="scheduleBody"></tbody>
+        </table>
+      </div>
+    </section>
   </main>
 
   <footer>

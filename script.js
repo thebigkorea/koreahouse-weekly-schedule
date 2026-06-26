@@ -1,12 +1,44 @@
 const API_URL =
   "https://script.google.com/macros/s/AKfycbyGjDH-JH_XWPggnOJEY74CplkiIJxpl6MD_1xJX6fhS_o5KagI4H2ozSEbXleBDoPTOw/exec";
 
-const ROLE_CONFIG = [
-  { key:"hall", label:"홀", maxRows:13 },
-  { key:"kitchen", label:"주방", maxRows:8 },
-  { key:"prep", label:"전처리", maxRows:1 },
-  { key:"exit", label:"퇴식", maxRows:2 },
-  { key:"wash", label:"설거지", maxRows:3 }
+const DAYS = ["월", "화", "수", "목", "금", "토", "일"];
+
+const ROWS = [
+  { label:"총괄", role:"hall", type:"hall" },
+  { label:"티카(M1)", role:"hall", type:"hall" },
+  { label:"티카(S1)", role:"hall", type:"hall" },
+  { label:"티카(M2)", role:"hall", type:"hall" },
+  { label:"티카(S2)", role:"hall", type:"hall" },
+  { label:"티카(H)", role:"hall", type:"hall" },
+  { label:"serving", role:"hall", type:"hall" },
+  { label:"serving", role:"hall", type:"hall" },
+  { label:"serving", role:"hall", type:"hall" },
+  { label:"serving", role:"hall", type:"hall" },
+  { label:"serving", role:"hall", type:"hall" },
+  { label:"serving", role:"hall", type:"hall" },
+  { label:"serving", role:"hall", type:"hall" },
+
+  { label:"홀 총원", type:"hallTotal", summary:true },
+
+  { label:"주방", type:"kitchenHead", section:true },
+
+  { label:"메인쉐프", role:"kitchen", type:"kitchen" },
+  { label:"팀원", role:"kitchen", type:"kitchen" },
+  { label:"팀원", role:"kitchen", type:"kitchen" },
+  { label:"팀원", role:"kitchen", type:"kitchen" },
+  { label:"팀원", role:"kitchen", type:"kitchen" },
+  { label:"팀원", role:"kitchen", type:"kitchen" },
+  { label:"팀원", role:"kitchen", type:"kitchen" },
+  { label:"팀원", role:"kitchen", type:"kitchen" },
+  { label:"전처리", role:"prep", type:"kitchen" },
+
+  { label:"주방 총원", type:"kitchenTotal", summary:true },
+
+  { label:"퇴식", role:"exit", type:"exit" },
+  { label:"퇴식", role:"exit", type:"exit" },
+  { label:"설거지", role:"wash", type:"wash" },
+  { label:"설거지", role:"wash", type:"wash" },
+  { label:"설거지", role:"wash", type:"wash" }
 ];
 
 let weeklyOptions = [];
@@ -44,6 +76,10 @@ function setNextWeek(){
   loadStaffOptions();
 }
 
+function showLoading(show){
+  document.getElementById("loadingBox").classList.toggle("hidden", !show);
+}
+
 async function loadStaffOptions(){
   const monday = document.getElementById("mondayInput").value;
 
@@ -64,8 +100,7 @@ async function loadStaffOptions(){
     }
 
     weeklyOptions = data.data || [];
-    renderScheduleCards();
-
+    renderTable();
   }catch(err){
     console.error(err);
     alert("직원 목록을 불러오지 못했습니다. Apps Script 배포와 권한을 확인하세요.");
@@ -74,130 +109,186 @@ async function loadStaffOptions(){
   }
 }
 
-function showLoading(show){
-  document.getElementById("loadingBox").classList.toggle("hidden", !show);
+function renderTable(){
+  renderTitle();
+  renderHeader();
+  renderBody();
+  updateTotals();
+  renderDayOffSummary();
 }
 
-function renderScheduleCards(){
-  const area = document.getElementById("scheduleArea");
-  area.innerHTML = "";
+function renderTitle(){
+  if(!weeklyOptions.length) return;
 
-  if(!weeklyOptions.length){
-    area.innerHTML = `<div class="empty-text">불러온 주간 데이터가 없습니다.</div>`;
-    return;
-  }
+  const first = new Date(weeklyOptions[0].date);
+  const last = new Date(weeklyOptions[6].date);
 
-  weeklyOptions.forEach(function(day, dayIndex){
-    const card = document.createElement("article");
-    card.className = "day-card";
-    card.dataset.dayIndex = dayIndex;
+  document.getElementById("scheduleTitle").textContent =
+    `한국의집 주간 근무표(${first.getMonth()+1}/${first.getDate()}~${last.getMonth()+1}/${last.getDate()})`;
+}
 
-    const dayName = ["월","화","수","목","금","토","일"][dayIndex];
-    const offNames = day.dayOffNames || [];
+function renderHeader(){
+  const head = document.getElementById("scheduleHead");
 
-    card.innerHTML = `
-      <div class="day-head">
-        <div>
-          <h2>${dayName}요일 ${day.label}</h2>
-          <p>${day.date}</p>
-        </div>
-        <div class="off-list">
-          D/O 제외: ${offNames.length ? offNames.join(", ") : "없음"}
-        </div>
-      </div>
-      <div class="role-area"></div>
-    `;
+  let html = "<tr>";
+  html += `<th class="label-col">구분</th>`;
 
-    const roleArea = card.querySelector(".role-area");
-
-    ROLE_CONFIG.forEach(function(role){
-      roleArea.appendChild(createRoleBlock(role, day[role.key] || [], day.time || []));
-    });
-
-    area.appendChild(card);
+  weeklyOptions.forEach(function(day, index){
+    const d = new Date(day.date);
+    html += `<th class="name-col">${DAYS[index]}(${d.getMonth()+1}/${d.getDate()})</th>`;
+    html += `<th class="time-col">시간</th>`;
   });
+
+  html += "</tr>";
+  head.innerHTML = html;
 }
 
-function createRoleBlock(role, names, times){
-  const block = document.createElement("div");
-  block.className = "role-block";
-  block.dataset.role = role.key;
+function renderBody(){
+  const body = document.getElementById("scheduleBody");
+  body.innerHTML = "";
 
-  block.innerHTML = `
-    <div class="role-title">
-      <strong>${role.label}</strong>
-      <button type="button">+ 추가</button>
-    </div>
-    <div class="rows"></div>
-  `;
+  ROWS.forEach(function(row, rowIndex){
+    const tr = document.createElement("tr");
 
-  const rows = block.querySelector(".rows");
-  const addBtn = block.querySelector("button");
-
-  addBtn.addEventListener("click", function(){
-    const currentCount = rows.querySelectorAll(".schedule-row").length;
-    if(currentCount >= role.maxRows){
-      alert(`${role.label}은 최대 ${role.maxRows}명까지 입력할 수 있습니다.`);
-      return;
+    if(row.summary){
+      tr.className = "summary-row";
     }
-    rows.appendChild(createScheduleRow(names, times));
+
+    if(row.section){
+      tr.className = "kitchen-head";
+    }
+
+    const labelTd = document.createElement("td");
+    labelTd.className = `label-col ${labelClass(row)}`;
+    labelTd.textContent = row.label;
+    tr.appendChild(labelTd);
+
+    for(let dayIndex = 0; dayIndex < 7; dayIndex++){
+      const nameTd = document.createElement("td");
+      const timeTd = document.createElement("td");
+
+      if(row.summary){
+        nameTd.dataset.total = row.type;
+        nameTd.dataset.dayIndex = dayIndex;
+        nameTd.textContent = "0";
+        timeTd.className = "empty-cell";
+      }else if(row.section){
+        nameTd.className = "empty-cell";
+        timeTd.className = "empty-cell";
+      }else{
+        nameTd.appendChild(createNameSelect(dayIndex, row.role, rowIndex));
+        timeTd.appendChild(createTimeSelect(dayIndex, row.role, rowIndex));
+      }
+
+      tr.appendChild(nameTd);
+      tr.appendChild(timeTd);
+    }
+
+    body.appendChild(tr);
   });
-
-  rows.appendChild(createScheduleRow(names, times));
-
-  return block;
 }
 
-function createScheduleRow(names, times){
-  const row = document.createElement("div");
-  row.className = "schedule-row";
+function labelClass(row){
+  if(row.type === "kitchen") return "kitchen-label";
+  if(row.type === "exit") return "exit-label";
+  if(row.type === "wash") return "wash-label";
+  if(row.type === "kitchenHead") return "";
+  return "";
+}
 
-  const nameOptions = [`<option value="">직원 선택</option>`]
-    .concat(names.map(name => `<option value="${escapeHtml(name)}">${escapeHtml(name)}</option>`))
-    .join("");
+function createNameSelect(dayIndex, role, rowIndex){
+  const select = document.createElement("select");
+  select.className = "name-select";
+  select.dataset.dayIndex = dayIndex;
+  select.dataset.role = role;
+  select.dataset.rowIndex = rowIndex;
 
-  const timeOptions = [`<option value="">시간 선택</option>`]
-    .concat(times.map(time => `<option value="${escapeHtml(time)}">${escapeHtml(time)}</option>`))
-    .join("");
+  const day = weeklyOptions[dayIndex] || {};
+  const names = day[role] || [];
 
-  row.innerHTML = `
-    <select class="name-select">${nameOptions}</select>
-    <select class="time-select">${timeOptions}</select>
-    <button type="button" title="삭제">×</button>
-  `;
+  select.innerHTML = `<option value=""></option>` +
+    names.map(name => `<option value="${escapeHtml(name)}">${escapeHtml(name)}</option>`).join("");
 
-  row.querySelector("button").addEventListener("click", function(){
-    row.remove();
+  select.addEventListener("change", updateTotals);
+
+  return select;
+}
+
+function createTimeSelect(dayIndex, role, rowIndex){
+  const select = document.createElement("select");
+  select.className = "time-select";
+  select.dataset.dayIndex = dayIndex;
+  select.dataset.role = role;
+  select.dataset.rowIndex = rowIndex;
+
+  const day = weeklyOptions[dayIndex] || {};
+  const times = day.time || [];
+
+  select.innerHTML = `<option value=""></option>` +
+    times.map(time => `<option value="${escapeHtml(time)}">${escapeHtml(time)}</option>`).join("");
+
+  return select;
+}
+
+function updateTotals(){
+  for(let dayIndex = 0; dayIndex < 7; dayIndex++){
+    const hallCount = document.querySelectorAll(`.name-select[data-day-index="${dayIndex}"][data-role="hall"]`)
+      ? Array.from(document.querySelectorAll(`.name-select[data-day-index="${dayIndex}"][data-role="hall"]`)).filter(s => s.value).length
+      : 0;
+
+    const kitchenCount =
+      Array.from(document.querySelectorAll(`.name-select[data-day-index="${dayIndex}"][data-role="kitchen"]`)).filter(s => s.value).length +
+      Array.from(document.querySelectorAll(`.name-select[data-day-index="${dayIndex}"][data-role="prep"]`)).filter(s => s.value).length;
+
+    const hallCell = document.querySelector(`[data-total="hallTotal"][data-day-index="${dayIndex}"]`);
+    const kitchenCell = document.querySelector(`[data-total="kitchenTotal"][data-day-index="${dayIndex}"]`);
+
+    if(hallCell) hallCell.textContent = hallCount;
+    if(kitchenCell) kitchenCell.textContent = kitchenCount;
+  }
+}
+
+function renderDayOffSummary(){
+  const summary = document.getElementById("dayOffSummary");
+
+  const lines = weeklyOptions.map(function(day, index){
+    const names = day.dayOffNames || [];
+    return `${DAYS[index]} ${day.label}: ${names.length ? names.join(", ") : "없음"}`;
   });
 
-  return row;
+  summary.textContent = "D/O 제외 · " + lines.join(" / ");
 }
 
 function collectScheduleData(){
-  const result = {};
+  const schedule = {};
 
-  document.querySelectorAll(".day-card").forEach(function(card){
-    const dayIndex = card.dataset.dayIndex;
-    result[dayIndex] = {};
+  for(let dayIndex = 0; dayIndex < 7; dayIndex++){
+    schedule[dayIndex] = {
+      hall:[],
+      kitchen:[],
+      prep:[],
+      exit:[],
+      wash:[]
+    };
+  }
 
-    ROLE_CONFIG.forEach(function(role){
-      const block = card.querySelector(`.role-block[data-role="${role.key}"]`);
-      const rows = [];
+  ROWS.forEach(function(row, rowIndex){
+    if(!row.role) return;
 
-      block.querySelectorAll(".schedule-row").forEach(function(row){
-        const name = row.querySelector(".name-select").value;
-        const time = row.querySelector(".time-select").value;
+    for(let dayIndex = 0; dayIndex < 7; dayIndex++){
+      const nameSelect = document.querySelector(`.name-select[data-day-index="${dayIndex}"][data-row-index="${rowIndex}"]`);
+      const timeSelect = document.querySelector(`.time-select[data-day-index="${dayIndex}"][data-row-index="${rowIndex}"]`);
 
-        if(name || time){
-          rows.push({ name, time });
-        }
-      });
+      const name = nameSelect ? nameSelect.value : "";
+      const time = timeSelect ? timeSelect.value : "";
 
-      result[dayIndex][role.key] = rows;
-    });
+      if(name || time){
+        schedule[dayIndex][row.role].push({ name, time });
+      }
+    }
   });
 
-  return result;
+  return schedule;
 }
 
 async function saveWeeklySchedule(){
@@ -207,8 +298,6 @@ async function saveWeeklySchedule(){
     alert("주간 시작일을 선택하세요.");
     return;
   }
-
-  const schedule = collectScheduleData();
 
   const ok = confirm("작성한 주간 스케줄을 구글시트에 저장할까요?");
   if(!ok) return;
@@ -221,7 +310,7 @@ async function saveWeeklySchedule(){
       body:JSON.stringify({
         action:"saveWeeklySchedule",
         monday,
-        schedule
+        schedule:collectScheduleData()
       })
     });
 
@@ -232,7 +321,6 @@ async function saveWeeklySchedule(){
     }
 
     alert("주간 스케줄이 구글시트에 저장되었습니다.");
-
   }catch(err){
     console.error(err);
     alert("저장 중 오류가 발생했습니다. Apps Script 배포 권한을 확인하세요.");
