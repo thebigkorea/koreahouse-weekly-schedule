@@ -407,22 +407,37 @@ async function loadCurrentWeeklySchedule() {
   showLoading(true);
 
   try {
-    const url =
-      `${API_URL}?action=getWeeklySchedule&monday=${encodeURIComponent(monday)}&t=${Date.now()}`;
+    // 1. 선택한 주간 기준으로 직원목록과 D/O 먼저 다시 불러오기
+    const optionUrl =
+      `${API_URL}?action=getStaffOptions&monday=${encodeURIComponent(monday)}&t=${Date.now()}`;
 
-    const res = await fetch(url);
-    const data = await res.json();
+    const optionRes = await fetch(optionUrl);
+    const optionData = await optionRes.json();
 
-    if (!data.ok) {
-      throw new Error(data.message || "기존 근무표 조회 실패");
+    if (!optionData.ok) {
+      throw new Error(optionData.message || "직원목록 조회 실패");
     }
 
-    if (!data.data.found) {
-      alert(data.data.message || "해당 주간 근무표가 없습니다.");
+    weeklyOptions = optionData.data || [];
+    renderTable();
+
+    // 2. 그 다음 선택한 주간의 기존 근무표 불러오기
+    const scheduleUrl =
+      `${API_URL}?action=getWeeklySchedule&monday=${encodeURIComponent(monday)}&t=${Date.now()}`;
+
+    const scheduleRes = await fetch(scheduleUrl);
+    const scheduleData = await scheduleRes.json();
+
+    if (!scheduleData.ok) {
+      throw new Error(scheduleData.message || "기존 근무표 조회 실패");
+    }
+
+    if (!scheduleData.data.found) {
+      alert(scheduleData.data.message || "해당 주간 근무표가 없습니다.");
       return;
     }
 
-    applyWeeklyScheduleToTable(data.data.schedule);
+    applyWeeklyScheduleToTable(scheduleData.data.schedule);
 
     alert("기존 근무표를 불러왔습니다.");
 
