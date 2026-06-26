@@ -107,6 +107,9 @@ async function loadStaffOptions(){
 
     weeklyOptions = data.data || [];
     renderTable();
+
+    // 저장된 근무표 자동 불러오기
+    loadCurrentWeeklySchedule(false);
   }catch(err){
     console.error(err);
     alert("직원 목록을 불러오지 못했습니다. Apps Script 배포와 권한을 확인하세요.");
@@ -417,7 +420,7 @@ async function loadPreviousWeekPattern() {
   }
 }
 
-async function loadCurrentWeeklySchedule() {
+async function loadCurrentWeeklySchedule(showMessage = true) {
   const monday = document.getElementById("mondayInput").value;
 
   if (!monday) {
@@ -453,14 +456,18 @@ async function loadCurrentWeeklySchedule() {
       throw new Error(scheduleData.message || "기존 근무표 조회 실패");
     }
 
-    if (!scheduleData.data.found) {
-      alert(scheduleData.data.message || "해당 주간 근무표가 없습니다.");
-      return;
+    if (!data.data.found) {
+    if (showMessage) {
+        alert(data.data.message || "해당 주간 근무표가 없습니다.");
     }
+    return;
+}
 
     applyWeeklyScheduleToTable(scheduleData.data.schedule);
 
+    if (showMessage) {
     alert("기존 근무표를 불러왔습니다.");
+}
 
   } catch (err) {
     console.error(err);
