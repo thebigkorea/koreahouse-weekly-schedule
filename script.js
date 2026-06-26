@@ -369,22 +369,37 @@ async function loadPreviousWeekPattern() {
   showLoading(true);
 
   try {
-    const url =
-      `${API_URL}?action=getPreviousWeekSchedule&monday=${encodeURIComponent(monday)}&t=${Date.now()}`;
+    // 1. 선택한 주간 기준 직원목록/D/O/헤더 먼저 갱신
+    const optionUrl =
+      `${API_URL}?action=getStaffOptions&monday=${encodeURIComponent(monday)}&t=${Date.now()}`;
 
-    const res = await fetch(url);
-    const data = await res.json();
+    const optionRes = await fetch(optionUrl);
+    const optionData = await optionRes.json();
 
-    if (!data.ok) {
-      throw new Error(data.message || "전주 패턴 조회 실패");
+    if (!optionData.ok) {
+      throw new Error(optionData.message || "직원목록 조회 실패");
     }
 
-    if (!data.data.found) {
-      alert(data.data.message || "전주 근무표가 없습니다.");
+    weeklyOptions = optionData.data || [];
+    renderTable();
+
+    // 2. 전주 패턴 불러오기
+    const patternUrl =
+      `${API_URL}?action=getPreviousWeekSchedule&monday=${encodeURIComponent(monday)}&t=${Date.now()}`;
+
+    const patternRes = await fetch(patternUrl);
+    const patternData = await patternRes.json();
+
+    if (!patternData.ok) {
+      throw new Error(patternData.message || "전주 패턴 조회 실패");
+    }
+
+    if (!patternData.data.found) {
+      alert(patternData.data.message || "전주 근무표가 없습니다.");
       return;
     }
 
-    applyWeeklyScheduleToTable(data.data.schedule);
+    applyWeeklyScheduleToTable(patternData.data.schedule);
 
     alert("전주 패턴을 불러왔습니다. 현재 주간 D/O 직원은 자동 제외되었습니다.");
 
