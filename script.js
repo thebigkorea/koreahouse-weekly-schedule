@@ -209,7 +209,13 @@ function createNameSelect(dayIndex, role, rowIndex){
   select.innerHTML = `<option value=""></option>` +
     names.map(name => `<option value="${escapeHtml(name)}">${escapeHtml(name)}</option>`).join("");
 
-  select.addEventListener("change", updateTotals);
+  select.addEventListener("change", function(){
+    updateTotals();
+
+    if(role === "hall"){
+      autoFillHallTime(dayIndex, rowIndex, select.value);
+    }
+  });
 
   return select;
 }
@@ -441,5 +447,51 @@ function setSelectValue_(select, value) {
     select.value = value;
   } else {
     select.value = "";
+  }
+}
+function autoFillHallTime(dayIndex, rowIndex, staffName){
+  if(!staffName) return;
+
+  const timeSelect = document.querySelector(
+    `.time-select[data-day-index="${dayIndex}"][data-row-index="${rowIndex}"]`
+  );
+
+  if(!timeSelect) return;
+
+  const defaultTime = getHallDefaultTimeByRow(rowIndex);
+
+  if(!defaultTime) return;
+
+  setSelectValue_(timeSelect, defaultTime);
+}
+
+function getHallDefaultTimeByRow(rowIndex){
+  const row = ROWS[rowIndex];
+
+  if(!row || row.role !== "hall") return "";
+
+  const label = row.label;
+
+  if(label === "총괄") return "";
+  if(label === "티카(M1)") return "10:00-19:00";
+  if(label === "티카(S1)") return "10:00-18:00";
+  if(label === "티카(M2)") return "18:00-21:00";
+  if(label === "티카(S2)") return "18:00-21:00";
+  if(label === "티카(H)") return "11:00-20:00";
+
+  if(label === "serving") return "10:00-21:00";
+
+  return "";
+}
+
+function setSelectValue_(select, value){
+  if(!select) return;
+
+  const exists = Array.from(select.options).some(function(opt){
+    return opt.value === value;
+  });
+
+  if(exists){
+    select.value = value;
   }
 }
