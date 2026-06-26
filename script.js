@@ -44,6 +44,12 @@ const ROWS = [
 let weeklyOptions = [];
 
 document.addEventListener("DOMContentLoaded", function(){
+  const mondayInput = document.getElementById("mondayInput");
+
+  mondayInput.addEventListener("change", function(){
+    loadStaffOptions();
+  });
+
   setThisWeek();
 });
 
