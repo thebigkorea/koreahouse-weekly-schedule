@@ -244,16 +244,22 @@ function updateTotals(){
         `.name-select[data-day-index="${dayIndex}"][data-role="hall"]`
       )
     )
-    .map(s => s.value.trim())
+    .map(select => select.value.trim())
     .filter(Boolean);
 
-    const kitchenNames = Array.from(
-      document.querySelectorAll(
-        `.name-select[data-day-index="${dayIndex}"][data-role="kitchen"], 
-         .name-select[data-day-index="${dayIndex}"][data-role="prep"]`
+    const kitchenNames = [
+      ...Array.from(
+        document.querySelectorAll(
+          `.name-select[data-day-index="${dayIndex}"][data-role="kitchen"]`
+        )
+      ),
+      ...Array.from(
+        document.querySelectorAll(
+          `.name-select[data-day-index="${dayIndex}"][data-role="prep"]`
+        )
       )
-    )
-    .map(s => s.value.trim())
+    ]
+    .map(select => select.value.trim())
     .filter(Boolean);
 
     const hallUniqueCount = new Set(hallNames).size;
@@ -270,7 +276,7 @@ function updateTotals(){
     if(hallCell) hallCell.textContent = hallUniqueCount;
     if(kitchenCell) kitchenCell.textContent = kitchenUniqueCount;
   }
-}   
+}
 
 function renderDayOffSummary(){
   const summary = document.getElementById("dayOffSummary");
