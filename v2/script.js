@@ -456,11 +456,11 @@ async function loadCurrentWeeklySchedule(showMessage = true) {
       throw new Error(scheduleData.message || "기존 근무표 조회 실패");
     }
 
-    if (!scheduleData.data.found) {
-  if (showMessage) {
-    alert(scheduleData.data.message || "해당 주간 근무표가 없습니다.");
-  }
-  return;
+    if (!data.data.found) {
+    if (showMessage) {
+        alert(data.data.message || "해당 주간 근무표가 없습니다.");
+    }
+    return;
 }
 
     applyWeeklyScheduleToTable(scheduleData.data.schedule);
