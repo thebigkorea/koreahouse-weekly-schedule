@@ -53,6 +53,13 @@ document.addEventListener("DOMContentLoaded", function(){
   setThisWeek();
 });
 
+function closeStaffManager(){
+  const box = document.getElementById("staffManager");
+  if(box){
+    box.classList.add("hidden");
+  }
+}
+
 function getMonday(date){
   const d = new Date(date);
   const day = d.getDay();
@@ -70,12 +77,16 @@ function formatDateInput(date){
 }
 
 function setThisWeek(){
+  closeStaffManager();
+
   const monday = getMonday(new Date());
   document.getElementById("mondayInput").value = formatDateInput(monday);
   loadStaffOptions();
 }
 
 function setNextWeek(){
+  closeStaffManager();
+
   const monday = getMonday(new Date());
   monday.setDate(monday.getDate() + 7);
   document.getElementById("mondayInput").value = formatDateInput(monday);
@@ -100,7 +111,6 @@ async function loadStaffOptions(){
     const url = `${API_URL}?action=getStaffOptions&monday=${encodeURIComponent(monday)}&t=${Date.now()}`;
     const res = await fetch(url);
     const data = await res.json();
-    
 
     if(!data.ok){
       throw new Error(data.message || "직원목록 조회 실패");
@@ -109,8 +119,8 @@ async function loadStaffOptions(){
     weeklyOptions = data.data || [];
     renderTable();
 
-    // 저장된 근무표 자동 불러오기
     loadCurrentWeeklySchedule(false);
+
   }catch(err){
     console.error(err);
     alert("직원 목록을 불러오지 못했습니다. Apps Script 배포와 권한을 확인하세요.");
@@ -328,6 +338,8 @@ function collectScheduleData(){
 }
 
 async function saveWeeklySchedule(){
+  closeStaffManager();
+
   const monday = document.getElementById("mondayInput").value;
 
   if(!monday){
@@ -366,6 +378,8 @@ async function saveWeeklySchedule(){
 }
 
 async function loadPreviousWeekPattern() {
+  closeStaffManager();
+
   const monday = document.getElementById("mondayInput").value;
 
   if (!monday) {
@@ -379,7 +393,6 @@ async function loadPreviousWeekPattern() {
   showLoading(true);
 
   try {
-    // 1. 선택한 주간 기준 직원목록/D/O/헤더 먼저 갱신
     const optionUrl =
       `${API_URL}?action=getStaffOptions&monday=${encodeURIComponent(monday)}&t=${Date.now()}`;
 
@@ -393,7 +406,6 @@ async function loadPreviousWeekPattern() {
     weeklyOptions = optionData.data || [];
     renderTable();
 
-    // 2. 전주 패턴 불러오기
     const patternUrl =
       `${API_URL}?action=getPreviousWeekSchedule&monday=${encodeURIComponent(monday)}&t=${Date.now()}`;
 
@@ -422,6 +434,8 @@ async function loadPreviousWeekPattern() {
 }
 
 async function loadCurrentWeeklySchedule(showMessage = true) {
+  closeStaffManager();
+
   const monday = document.getElementById("mondayInput").value;
 
   if (!monday) {
@@ -432,7 +446,6 @@ async function loadCurrentWeeklySchedule(showMessage = true) {
   showLoading(true);
 
   try {
-    // 1. 선택한 주간 기준으로 직원목록과 D/O 먼저 다시 불러오기
     const optionUrl =
       `${API_URL}?action=getStaffOptions&monday=${encodeURIComponent(monday)}&t=${Date.now()}`;
 
@@ -446,7 +459,6 @@ async function loadCurrentWeeklySchedule(showMessage = true) {
     weeklyOptions = optionData.data || [];
     renderTable();
 
-    // 2. 그 다음 선택한 주간의 기존 근무표 불러오기
     const scheduleUrl =
       `${API_URL}?action=getWeeklySchedule&monday=${encodeURIComponent(monday)}&t=${Date.now()}`;
 
@@ -458,17 +470,17 @@ async function loadCurrentWeeklySchedule(showMessage = true) {
     }
 
     if (!scheduleData.data.found) {
-  if (showMessage) {
-    alert(scheduleData.data.message || "해당 주간 근무표가 없습니다.");
-  }
-  return;
-}
+      if (showMessage) {
+        alert(scheduleData.data.message || "해당 주간 근무표가 없습니다.");
+      }
+      return;
+    }
 
     applyWeeklyScheduleToTable(scheduleData.data.schedule);
 
     if (showMessage) {
-    alert("기존 근무표를 불러왔습니다.");
-}
+      alert("기존 근무표를 불러왔습니다.");
+    }
 
   } catch (err) {
     console.error(err);
@@ -519,11 +531,7 @@ function setSelectValue_(select, value) {
     return opt.value === value;
   });
 
-  if (exists) {
-    select.value = value;
-  } else {
-    select.value = "";
-  }
+  select.value = exists ? value : "";
 }
 
 function escapeHtml(value){
@@ -534,47 +542,46 @@ function escapeHtml(value){
     .replaceAll('"', "&quot;")
     .replaceAll("'", "&#039;");
 }
+
 async function generateNextWeekSchedule() {
+  closeStaffManager();
 
-    if (!confirm("다음주 근무표를 자동 생성하시겠습니까?")) {
-        return;
-    }
+  if (!confirm("다음주 근무표를 자동 생성하시겠습니까?")) {
+    return;
+  }
 
-    // 다음주로 이동
-    const mondayInput = document.getElementById("mondayInput");
+  const mondayInput = document.getElementById("mondayInput");
 
-    const d = new Date(mondayInput.value);
-    d.setDate(d.getDate() + 7);
+  const d = new Date(mondayInput.value);
+  d.setDate(d.getDate() + 7);
 
-    mondayInput.value = formatDateInput(d);
+  mondayInput.value = formatDateInput(d);
 
-    // 직원목록 새로 불러오기
-    await loadStaffOptions();
+  await loadStaffOptions();
+  await loadPreviousWeekPattern();
 
-    // 전주 패턴 자동 복사
-    await loadPreviousWeekPattern();
-
-    alert("다음주 근무표가 생성되었습니다.\nD/O 직원은 자동 제외되었습니다.");
+  alert("다음주 근무표가 생성되었습니다.\nD/O 직원은 자동 제외되었습니다.");
 }
+
 function toggleStaffManager() {
-  document
-    .getElementById("staffManager")
-    .classList.toggle("hidden");
+  const box = document.getElementById("staffManager");
+  if(!box) return;
 
-  loadWeeklyStaffList();
+  box.classList.toggle("hidden");
+
+  if(!box.classList.contains("hidden")){
+    loadWeeklyStaffList();
+  }
 }
-async function loadWeeklyStaffList(){
 
+async function loadWeeklyStaffList(){
   const res = await fetch(API_URL+"?action=getWeeklyStaffList&t="+Date.now());
   const data = await res.json();
 
-  console.log("직원관리 데이터:", data);
-
-  renderWeeklyStaffList(data.data || []);
-
+  renderWeeklyStaffList(data.data || {});
 }
-function renderWeeklyStaffList(data){
 
+function renderWeeklyStaffList(data){
   const box = document.getElementById("weeklyStaffList");
 
   const roleLabels = {
@@ -593,13 +600,13 @@ function renderWeeklyStaffList(data){
     names.forEach(name => {
       html += `
         <div class="staff-card">
-          <b>${name}</b><br>
+          <b>${escapeHtml(name)}</b><br>
           ${roleLabels[role]}
 
           <div class="staff-buttons">
             <button
               type="button"
-              onclick="deleteWeeklyStaff('${name}','${role}')"
+              onclick="deleteWeeklyStaff('${escapeHtml(name)}','${role}')"
               class="danger">
               퇴사 처리
             </button>
@@ -611,18 +618,17 @@ function renderWeeklyStaffList(data){
 
   box.innerHTML = html || "등록된 직원이 없습니다.";
 }
+
 async function addWeeklyStaff(){
-
-  const name=document.getElementById("newStaffName").value.trim();
-
-  const role=document.getElementById("newStaffRole").value;
+  const name = document.getElementById("newStaffName").value.trim();
+  const role = document.getElementById("newStaffRole").value;
 
   if(!name){
     alert("직원명을 입력하세요.");
     return;
   }
 
-  const res=await fetch(API_URL,{
+  const res = await fetch(API_URL,{
     method:"POST",
     body:JSON.stringify({
       action:"addWeeklyStaff",
@@ -631,22 +637,22 @@ async function addWeeklyStaff(){
     })
   });
 
-  const data=await res.json();
+  const data = await res.json();
 
-  alert(data.message);
+  alert(data.message || "직원이 등록되었습니다.");
 
-  document.getElementById("newStaffName").value="";
+  document.getElementById("newStaffName").value = "";
 
-  loadWeeklyStaffList();
-  loadStaffOptions();
-
+  await loadWeeklyStaffList();
+  await loadStaffOptions();
 }
-async function deleteWeeklyStaff(name,role){
 
-  if(!confirm(`${name} 직원을 퇴사 처리하시겠습니까?`))
+async function deleteWeeklyStaff(name, role){
+  if(!confirm(`${name} 직원을 퇴사 처리하시겠습니까?`)){
     return;
+  }
 
-  const res=await fetch(API_URL,{
+  const res = await fetch(API_URL,{
     method:"POST",
     body:JSON.stringify({
       action:"deleteWeeklyStaff",
@@ -655,16 +661,15 @@ async function deleteWeeklyStaff(name,role){
     })
   });
 
-  const data=await res.json();
+  const data = await res.json();
 
-  alert(data.message);
+  alert(data.message || "퇴사 처리되었습니다.");
 
-  loadWeeklyStaffList();
-  loadStaffOptions();
-
+  await loadWeeklyStaffList();
+  await loadStaffOptions();
 }
-async function deleteWeeklyStaffFromForm(){
 
+async function deleteWeeklyStaffFromForm(){
   const name = document.getElementById("newStaffName").value.trim();
   const role = document.getElementById("newStaffRole").value;
 
