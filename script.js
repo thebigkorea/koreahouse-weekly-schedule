@@ -663,3 +663,15 @@ async function deleteWeeklyStaff(name,role){
   loadStaffOptions();
 
 }
+async function deleteWeeklyStaffFromForm(){
+
+  const name = document.getElementById("newStaffName").value.trim();
+  const role = document.getElementById("newStaffRole").value;
+
+  if(!name){
+    alert("퇴사 처리할 직원명을 입력하세요.");
+    return;
+  }
+
+  await deleteWeeklyStaff(name, role);
+}
