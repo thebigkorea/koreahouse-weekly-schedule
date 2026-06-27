@@ -100,6 +100,7 @@ async function loadStaffOptions(){
     const url = `${API_URL}?action=getStaffOptions&monday=${encodeURIComponent(monday)}&t=${Date.now()}`;
     const res = await fetch(url);
     const data = await res.json();
+    
 
     if(!data.ok){
       throw new Error(data.message || "직원목록 조회 실패");
@@ -566,6 +567,8 @@ async function loadWeeklyStaffList(){
 
   const res = await fetch(API_URL+"?action=getWeeklyStaffList&t="+Date.now());
   const data = await res.json();
+
+  console.log("직원관리 데이터:", data);
 
   renderWeeklyStaffList(data.data || []);
 
