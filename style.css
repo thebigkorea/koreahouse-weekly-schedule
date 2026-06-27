@@ -473,19 +473,24 @@ footer{
 /* ===========================
    A4 가로 인쇄 전용
 =========================== */
+/* ===========================
+   A4 가로 1페이지 인쇄 전용
+=========================== */
 @media print{
 
   @page{
     size:A4 landscape;
-    margin:8mm;
+    margin:4mm;
   }
 
   html,
   body{
     width:100%;
+    height:100%;
     margin:0;
     padding:0;
     background:#fff;
+    overflow:hidden;
     -webkit-print-color-adjust:exact;
     print-color-adjust:exact;
   }
@@ -500,36 +505,37 @@ footer{
 
   .wrap{
     width:100%;
-    max-width:none;
+    height:auto;
     margin:0;
     padding:0;
   }
 
   .table-card{
-    border:none;
-    box-shadow:none;
+    width:100%;
     margin:0;
     padding:0;
+    border:0;
+    box-shadow:none;
   }
 
   .table-head{
     display:block;
     text-align:center;
-    margin-bottom:8px;
+    margin-bottom:3px;
   }
 
   #scheduleTitle{
-    font-size:22px;
+    font-size:16px !important;
     margin:0;
-    font-weight:bold;
+    line-height:1.1;
   }
 
   #dayOffSummary{
-    font-size:11px;
-    margin-top:4px;
+    font-size:7px !important;
+    margin:2px 0 3px;
     color:#b22222;
     text-align:center;
-    white-space:normal;
+    white-space:nowrap;
   }
 
   .table-scroll{
@@ -539,7 +545,7 @@ footer{
 
   .schedule-table{
     width:100%;
-    min-width:0;
+    min-width:0 !important;
     table-layout:fixed;
     border-collapse:collapse;
   }
@@ -547,42 +553,42 @@ footer{
   .schedule-table th,
   .schedule-table td{
     border:1px solid #000;
-    height:22px;
-    padding:1px;
-    font-size:8.5px;
+    height:15px !important;
+    padding:0 !important;
+    font-size:6.5px !important;
+    line-height:1 !important;
     text-align:center;
     vertical-align:middle;
   }
 
   .schedule-table th{
-    background:#ffc107 !important;
+    background:#ffc000 !important;
     color:#000 !important;
   }
 
   .schedule-table .label-col{
-    width:64px;
-    font-weight:bold;
+    width:42px !important;
   }
 
   .schedule-table .name-col{
-    width:52px;
+    width:37px !important;
   }
 
   .schedule-table .time-col{
-    width:66px;
+    width:48px !important;
   }
 
   .schedule-table select{
     width:100%;
-    height:18px;
-    border:none;
+    height:13px !important;
+    border:0;
     background:transparent;
     appearance:none;
     -webkit-appearance:none;
-    font-size:8px;
-    font-weight:bold;
-    text-align:center;
-    padding:0;
+    font-size:6.2px !important;
+    font-weight:800;
+    padding:0 !important;
+    line-height:1 !important;
   }
 
   button{
