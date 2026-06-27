@@ -573,33 +573,43 @@ async function loadWeeklyStaffList(){
   renderWeeklyStaffList(data.data || []);
 
 }
-function renderWeeklyStaffList(list){
+function renderWeeklyStaffList(data){
 
-  const box=document.getElementById("weeklyStaffList");
+  const box = document.getElementById("weeklyStaffList");
 
-  box.innerHTML=list.map(s=>`
+  const roleLabels = {
+    hall: "홀직원",
+    kitchen: "주방직원",
+    prep: "전처리",
+    exit: "퇴식",
+    wash: "설거지"
+  };
 
-<div class="staff-card">
+  let html = "";
 
-<b>${s.name}</b><br>
-${s.role}
+  Object.keys(roleLabels).forEach(role => {
+    const names = data[role] || [];
 
-<div class="staff-buttons">
+    names.forEach(name => {
+      html += `
+        <div class="staff-card">
+          <b>${name}</b><br>
+          ${roleLabels[role]}
 
-<button
-onclick="deleteWeeklyStaff('${s.name}','${s.role}')"
-class="danger">
+          <div class="staff-buttons">
+            <button
+              type="button"
+              onclick="deleteWeeklyStaff('${name}','${role}')"
+              class="danger">
+              퇴사 처리
+            </button>
+          </div>
+        </div>
+      `;
+    });
+  });
 
-퇴사
-
-</button>
-
-</div>
-
-</div>
-
-`).join("");
-
+  box.innerHTML = html || "등록된 직원이 없습니다.";
 }
 async function addWeeklyStaff(){
 
