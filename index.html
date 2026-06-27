@@ -21,14 +21,14 @@
       </div>
     </div>
 
-    <div class="top-actions">        
-      <button type="button" onclick="loadStaffOptions()">직원목록 새로고침</button>
-      <button type="button" onclick="toggleStaffManager()">직원관리</button>
-      <button type="button" class="primary" onclick="generateNextWeekSchedule()">📅 다음주 근무표 생성</button>
-      <button type="button" onclick="loadCurrentWeeklySchedule()">기존 근무표 불러오기</button>
-      <button type="button" onclick="loadPreviousWeekPattern()">전주 패턴 불러오기</button>
-      <button type="button" onclick="saveWeeklySchedule()" class="primary">구글시트 저장</button>
-      <button type="button" onclick="window.print()">인쇄</button>
+    <div class="top-actions">
+      <button type="button" onclick="loadStaffOptions()">🔄 직원목록 새로고침</button>
+      <button type="button" onclick="toggleStaffManager()">👥 직원관리</button>
+      <button type="button" class="primary" onclick="generateNextWeekSchedule()">📅 다음주 자동생성</button>
+      <button type="button" onclick="loadCurrentWeeklySchedule()">📂 저장된 근무표</button>
+      <button type="button" onclick="loadPreviousWeekPattern()">📋 전주 패턴 복사</button>
+      <button type="button" onclick="saveWeeklySchedule()" class="primary">💾 저장</button>
+      <button type="button" onclick="window.print()">🖨️ 인쇄</button>
     </div>
   </header>
 
@@ -58,40 +58,44 @@
       <span>구글시트와 동일하게 왼쪽은 구분, 오른쪽은 월~일 직원/시간 칸으로 구성됩니다.</span>
     </section>
 
-    <section id="loadingBox" class="loading hidden">직원목록을 불러오는 중입니다...</section>
+    <section id="loadingBox" class="loading hidden">
+      직원목록을 불러오는 중입니다...
+    </section>
 
     <section id="staffManager" class="staff-manager hidden">
-  <div class="staff-manager-head">
-    <h2>직원관리</h2>
-    <button type="button" onclick="toggleStaffManager()">닫기</button>
-  </div>
+      <div class="staff-manager-head">
+        <h2>직원관리</h2>
+        <button type="button" onclick="toggleStaffManager()">닫기</button>
+      </div>
 
-  <div class="staff-form">
-    <input type="text" id="newStaffName" placeholder="직원명 입력">
+      <div class="staff-form">
+        <input type="text" id="newStaffName" placeholder="직원명 입력" />
 
-    <select id="newStaffRole">
-      <option value="hall">홀직원</option>
-      <option value="kitchen">주방직원</option>
-      <option value="prep">전처리</option>
-      <option value="exit">퇴식</option>
-      <option value="wash">설거지</option>
-    </select>
+        <select id="newStaffRole">
+          <option value="hall">홀직원</option>
+          <option value="kitchen">주방직원</option>
+          <option value="prep">전처리</option>
+          <option value="exit">퇴식</option>
+          <option value="wash">설거지</option>
+        </select>
 
-    <button type="button" class="primary" onclick="addWeeklyStaff()">직원 등록</button>
+        <button type="button" class="primary" onclick="addWeeklyStaff()">
+          직원 등록
+        </button>
 
-    <button type="button" class="danger" onclick="deleteWeeklyStaffFromForm()">
-      직원 퇴사
-    </button>
-  </div>
+        <button type="button" class="danger" onclick="deleteWeeklyStaffFromForm()">
+          직원 퇴사
+        </button>
+      </div>
 
-  <div id="weeklyStaffList" class="weekly-staff-list"></div>
-</section>
+      <div id="weeklyStaffList" class="weekly-staff-list"></div>
+    </section>
 
     <section class="table-card">
       <div class="table-head">
         <h2 id="scheduleTitle">한국의집 주간 근무표</h2>
         <p id="dayOffSummary"></p>
-     </div>
+      </div>
 
       <div class="table-scroll">
         <table id="scheduleTable" class="schedule-table">
