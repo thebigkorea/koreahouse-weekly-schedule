@@ -659,7 +659,7 @@ footer{
 =========================== */
 
 .hero{
-  display:none;
+  display:flex !important;
 }
 
 .wrap{
