@@ -470,6 +470,82 @@ footer{
   }
 }
 
+.staff-manager{
+  margin:12px 0;
+  padding:20px;
+  border-radius:24px;
+  background:#fffaf2;
+  border:1px solid var(--line);
+  box-shadow:0 12px 32px rgba(52,32,16,.08);
+}
+
+.staff-manager-head{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+  margin-bottom:14px;
+}
+
+.staff-manager-head h2{
+  margin:0;
+  font-size:24px;
+}
+
+.staff-form{
+  display:grid;
+  grid-template-columns:1fr 220px 140px;
+  gap:10px;
+  margin-bottom:16px;
+}
+
+.staff-form input,
+.staff-form select{
+  height:46px;
+  border:1px solid var(--line);
+  border-radius:14px;
+  padding:0 14px;
+  font-size:15px;
+  font-weight:800;
+  background:#fff;
+}
+
+.weekly-staff-list{
+  display:grid;
+  grid-template-columns:repeat(4,1fr);
+  gap:12px;
+}
+
+.staff-card{
+  padding:14px;
+  border:1px solid var(--line);
+  border-radius:16px;
+  background:#fff;
+  font-size:14px;
+  font-weight:800;
+}
+
+.staff-buttons{
+  margin-top:10px;
+}
+
+.staff-card .danger{
+  background:#b91c1c;
+  color:#fff;
+  padding:8px 12px;
+  border-radius:10px;
+}
+
+@media screen and (max-width:1000px){
+  .staff-form{
+    grid-template-columns:1fr;
+  }
+
+  .weekly-staff-list{
+    grid-template-columns:1fr;
+  }
+}
+
 /* ===========================
    A4 가로 인쇄 전용
 =========================== */
@@ -525,7 +601,7 @@ footer{
   }
 
   #scheduleTitle{
-    font: size 18px !important;
+    font-size:18px !important;
     margin:0;
     line-height:1.1;
   }

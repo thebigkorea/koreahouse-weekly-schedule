@@ -555,3 +555,98 @@ async function generateNextWeekSchedule() {
 
     alert("다음주 근무표가 생성되었습니다.\nD/O 직원은 자동 제외되었습니다.");
 }
+function toggleStaffManager() {
+  document
+    .getElementById("staffManager")
+    .classList.toggle("hidden");
+
+  loadWeeklyStaffList();
+}
+async function loadWeeklyStaffList(){
+
+  const res = await fetch(API_URL+"?action=getWeeklyStaffList&t="+Date.now());
+  const data = await res.json();
+
+  renderWeeklyStaffList(data.data || []);
+
+}
+function renderWeeklyStaffList(list){
+
+  const box=document.getElementById("weeklyStaffList");
+
+  box.innerHTML=list.map(s=>`
+
+<div class="staff-card">
+
+<b>${s.name}</b><br>
+${s.role}
+
+<div class="staff-buttons">
+
+<button
+onclick="deleteWeeklyStaff('${s.name}','${s.role}')"
+class="danger">
+
+퇴사
+
+</button>
+
+</div>
+
+</div>
+
+`).join("");
+
+}
+async function addWeeklyStaff(){
+
+  const name=document.getElementById("newStaffName").value.trim();
+
+  const role=document.getElementById("newStaffRole").value;
+
+  if(!name){
+    alert("직원명을 입력하세요.");
+    return;
+  }
+
+  const res=await fetch(API_URL,{
+    method:"POST",
+    body:JSON.stringify({
+      action:"addWeeklyStaff",
+      name,
+      role
+    })
+  });
+
+  const data=await res.json();
+
+  alert(data.message);
+
+  document.getElementById("newStaffName").value="";
+
+  loadWeeklyStaffList();
+  loadStaffOptions();
+
+}
+async function deleteWeeklyStaff(name,role){
+
+  if(!confirm(`${name} 직원을 퇴사 처리하시겠습니까?`))
+    return;
+
+  const res=await fetch(API_URL,{
+    method:"POST",
+    body:JSON.stringify({
+      action:"deleteWeeklyStaff",
+      name,
+      role
+    })
+  });
+
+  const data=await res.json();
+
+  alert(data.message);
+
+  loadWeeklyStaffList();
+  loadStaffOptions();
+
+}
