@@ -674,10 +674,16 @@ footer{
 @media print {
   @page {
     size: A4 landscape;
-    margin: 5mm;
+    margin: 4mm;
   }
 
+  html,
   body {
+    width: 297mm;
+    height: 210mm;
+    margin: 0 !important;
+    padding: 0 !important;
+    overflow: hidden !important;
     background: #fff !important;
   }
 
@@ -686,55 +692,61 @@ footer{
     max-width: none !important;
     margin: 0 !important;
     padding: 0 !important;
+    transform: scale(0.82);
+    transform-origin: top left;
   }
 
   .schedule-title {
-    font-size: 30px !important;
-    font-weight: 900 !important;
-    margin-bottom: 6px !important;
+    font-size: 24px !important;
+    line-height: 1.1 !important;
+    margin: 0 0 3px 0 !important;
   }
 
-  .day-header {
-    font-size: 20px !important;
-    font-weight: 900 !important;
+  #dayOffSummary {
+    font-size: 9px !important;
+    line-height: 1.1 !important;
+    margin-bottom: 2px !important;
   }
 
   .schedule-table {
-    width: 100% !important;
+    width: 121% !important;
     table-layout: fixed !important;
     border-collapse: collapse !important;
   }
 
   .schedule-table th,
   .schedule-table td {
-    font-size: 15px !important;
-    font-weight: 800 !important;
-    padding: 6px 4px !important;
-    line-height: 1.25 !important;
+    font-size: 10px !important;
+    font-weight: 900 !important;
+    padding: 2px 1px !important;
+    line-height: 1.05 !important;
+    height: 18px !important;
     color: #000 !important;
   }
 
   .schedule-table select {
-    font-size: 15px !important;
-    font-weight: 800 !important;
-    color: #000 !important;
+    font-size: 10px !important;
+    font-weight: 900 !important;
+    padding: 0 !important;
+    height: 16px !important;
+    line-height: 1 !important;
     border: none !important;
     background: transparent !important;
+    color: #000 !important;
     appearance: none !important;
-    text-align: center !important;
+    -webkit-appearance: none !important;
   }
 
-  .schedule-table .time-select {
-    font-size: 14px !important;
-    font-weight: 800 !important;
+  .label-col {
+    width: 46px !important;
   }
 
-  .no-print,
-  .tabs,
-  .control-area,
-  .print-btn,
-  button {
-    display: none !important;
+  .name-col {
+    width: 58px !important;
+  }
+
+  .time-col {
+    width: 62px !important;
   }
 
   .alert-cell,
@@ -743,12 +755,14 @@ footer{
     -webkit-print-color-adjust: exact !important;
     print-color-adjust: exact !important;
   }
-}
-.alert-cell {
-  background: #ffe600 !important;
-}
 
-.alert-cell select {
-  background: #ffe600 !important;
-  font-weight: 900;
+  .tabs,
+  .control-area,
+  .print-btn,
+  button,
+  .no-print,
+  #staffManager,
+  #loadingBox {
+    display: none !important;
+  }
 }
