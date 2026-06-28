@@ -680,3 +680,23 @@ async function deleteWeeklyStaffFromForm(){
 
   await deleteWeeklyStaff(name, role);
 }
+// ===========================
+// 알림 셀(노란색) 표시
+// 더블클릭하면 ON/OFF
+// ===========================
+
+document.addEventListener("dblclick", function(e){
+
+  const td = e.target.closest("td");
+
+  if(!td) return;
+
+  // 직원명 또는 시간 셀만 적용
+  if(
+      td.querySelector(".name-select") ||
+      td.querySelector(".time-select")
+  ){
+      td.classList.toggle("alert-cell");
+  }
+
+});

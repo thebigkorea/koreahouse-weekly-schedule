@@ -671,3 +671,84 @@ footer{
     display:none !important;
   }
 }
+@media print {
+  @page {
+    size: A4 landscape;
+    margin: 5mm;
+  }
+
+  body {
+    background: #fff !important;
+  }
+
+  .wrap {
+    width: 100% !important;
+    max-width: none !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+
+  .schedule-title {
+    font-size: 30px !important;
+    font-weight: 900 !important;
+    margin-bottom: 6px !important;
+  }
+
+  .day-header {
+    font-size: 20px !important;
+    font-weight: 900 !important;
+  }
+
+  .schedule-table {
+    width: 100% !important;
+    table-layout: fixed !important;
+    border-collapse: collapse !important;
+  }
+
+  .schedule-table th,
+  .schedule-table td {
+    font-size: 15px !important;
+    font-weight: 800 !important;
+    padding: 6px 4px !important;
+    line-height: 1.25 !important;
+    color: #000 !important;
+  }
+
+  .schedule-table select {
+    font-size: 15px !important;
+    font-weight: 800 !important;
+    color: #000 !important;
+    border: none !important;
+    background: transparent !important;
+    appearance: none !important;
+    text-align: center !important;
+  }
+
+  .schedule-table .time-select {
+    font-size: 14px !important;
+    font-weight: 800 !important;
+  }
+
+  .no-print,
+  .tabs,
+  .control-area,
+  .print-btn,
+  button {
+    display: none !important;
+  }
+
+  .alert-cell,
+  .alert-cell select {
+    background: #ffe600 !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+}
+.alert-cell {
+  background: #ffe600 !important;
+}
+
+.alert-cell select {
+  background: #ffe600 !important;
+  font-weight: 900;
+}
