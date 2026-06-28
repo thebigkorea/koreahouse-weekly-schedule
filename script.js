@@ -700,3 +700,19 @@ document.addEventListener("dblclick", function(e){
   }
 
 });
+// ===========================
+// 알림 셀 노란색 표시
+// 더블클릭하면 ON / OFF
+// ===========================
+document.addEventListener("dblclick", function(e){
+  const td = e.target.closest("td");
+
+  if(!td) return;
+
+  if(
+    td.querySelector(".name-select") ||
+    td.querySelector(".time-select")
+  ){
+    td.classList.toggle("alert-cell");
+  }
+});

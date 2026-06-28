@@ -356,12 +356,85 @@ button.primary{
   background:#fff;
 }
 
+/* 알림 셀 - 화면용 */
+.alert-cell,
+.alert-cell select{
+  background:#ffe600 !important;
+  font-weight:900 !important;
+}
+
 footer{
   margin:0;
   padding:20px 22px 40px;
   color:var(--muted);
   font-size:13px;
   font-weight:700;
+}
+
+.staff-manager{
+  margin:12px 0;
+  padding:20px;
+  border-radius:24px;
+  background:#fffaf2;
+  border:1px solid var(--line);
+  box-shadow:0 12px 32px rgba(52,32,16,.08);
+}
+
+.staff-manager-head{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+  margin-bottom:14px;
+}
+
+.staff-manager-head h2{
+  margin:0;
+  font-size:24px;
+}
+
+.staff-form{
+  display:grid;
+  grid-template-columns:1fr 220px 140px;
+  gap:10px;
+  margin-bottom:16px;
+}
+
+.staff-form input,
+.staff-form select{
+  height:46px;
+  border:1px solid var(--line);
+  border-radius:14px;
+  padding:0 14px;
+  font-size:15px;
+  font-weight:800;
+  background:#fff;
+}
+
+.weekly-staff-list{
+  display:grid;
+  grid-template-columns:repeat(4,1fr);
+  gap:12px;
+}
+
+.staff-card{
+  padding:14px;
+  border:1px solid var(--line);
+  border-radius:16px;
+  background:#fff;
+  font-size:14px;
+  font-weight:800;
+}
+
+.staff-buttons{
+  margin-top:10px;
+}
+
+.staff-card .danger{
+  background:#b91c1c;
+  color:#fff;
+  padding:8px 12px;
+  border-radius:10px;
 }
 
 @media screen and (max-width:1500px){
@@ -468,75 +541,7 @@ footer{
   .schedule-table{
     min-width:1280px;
   }
-}
 
-.staff-manager{
-  margin:12px 0;
-  padding:20px;
-  border-radius:24px;
-  background:#fffaf2;
-  border:1px solid var(--line);
-  box-shadow:0 12px 32px rgba(52,32,16,.08);
-}
-
-.staff-manager-head{
-  display:flex;
-  align-items:center;
-  justify-content:space-between;
-  gap:12px;
-  margin-bottom:14px;
-}
-
-.staff-manager-head h2{
-  margin:0;
-  font-size:24px;
-}
-
-.staff-form{
-  display:grid;
-  grid-template-columns:1fr 220px 140px;
-  gap:10px;
-  margin-bottom:16px;
-}
-
-.staff-form input,
-.staff-form select{
-  height:46px;
-  border:1px solid var(--line);
-  border-radius:14px;
-  padding:0 14px;
-  font-size:15px;
-  font-weight:800;
-  background:#fff;
-}
-
-.weekly-staff-list{
-  display:grid;
-  grid-template-columns:repeat(4,1fr);
-  gap:12px;
-}
-
-.staff-card{
-  padding:14px;
-  border:1px solid var(--line);
-  border-radius:16px;
-  background:#fff;
-  font-size:14px;
-  font-weight:800;
-}
-
-.staff-buttons{
-  margin-top:10px;
-}
-
-.staff-card .danger{
-  background:#b91c1c;
-  color:#fff;
-  padding:8px 12px;
-  border-radius:10px;
-}
-
-@media screen and (max-width:1000px){
   .staff-form{
     grid-template-columns:1fr;
   }
@@ -547,13 +552,9 @@ footer{
 }
 
 /* ===========================
-   A4 가로 인쇄 전용
-=========================== */
-/* ===========================
    A4 가로 1페이지 인쇄 전용
 =========================== */
 @media print{
-
   @page{
     size:A4 landscape;
     margin:4mm;
@@ -561,208 +562,160 @@ footer{
 
   html,
   body{
-    width:100%;
-    height:100%;
-    margin:0;
-    padding:0;
-    background:#fff;
-    overflow:hidden;
-    -webkit-print-color-adjust:exact;
-    print-color-adjust:exact;
+    width:297mm;
+    height:210mm;
+    margin:0 !important;
+    padding:0 !important;
+    overflow:hidden !important;
+    background:#fff !important;
+    -webkit-print-color-adjust:exact !important;
+    print-color-adjust:exact !important;
   }
 
   .topbar,
   .hero,
   .notice,
   footer,
+  button,
+  .no-print,
+  #staffManager,
   #loadingBox{
     display:none !important;
   }
 
   .wrap{
-    width:100%;
-    height:auto;
-    margin:0;
-    padding:0;
+    width:100% !important;
+    max-width:none !important;
+    margin:0 !important;
+    padding:0 !important;
+    transform:scale(0.90);
+    transform-origin:top left;
   }
 
   .table-card{
-    width:100%;
-    margin:0;
-    padding:0;
-    border:0;
-    box-shadow:none;
+    width:100% !important;
+    margin:0 !important;
+    padding:0 !important;
+    border:0 !important;
+    box-shadow:none !important;
+    background:#fff !important;
   }
 
   .table-head{
-    display:block;
-    text-align:center;
-    margin-bottom:3px;
+    display:block !important;
+    text-align:center !important;
+    margin:0 0 3px 0 !important;
   }
 
+  .table-head h2,
   #scheduleTitle{
-    font-size:18px !important;
-    margin:0;
-    line-height:1.1;
+    font-size:23px !important;
+    font-weight:900 !important;
+    line-height:1.1 !important;
+    margin:0 !important;
+    color:#000 !important;
   }
 
+  .table-head p,
   #dayOffSummary{
-    font-size:7px !important;
-    margin:2px 0 3px;
-    color:#b22222;
-    text-align:center;
-    white-space:nowrap;
+    display:block !important;
+    font-size:9px !important;
+    font-weight:900 !important;
+    line-height:1.1 !important;
+    margin:2px 0 3px !important;
+    color:#b22222 !important;
+    text-align:center !important;
+    white-space:nowrap !important;
   }
 
   .table-scroll{
+    width:111% !important;
     overflow:visible !important;
-    border:0;
+    border:0 !important;
+    border-radius:0 !important;
   }
 
   .schedule-table{
-    width:100%;
+    width:100% !important;
     min-width:0 !important;
-    table-layout:fixed;
-    border-collapse:collapse;
+    table-layout:fixed !important;
+    border-collapse:collapse !important;
+    background:#fff !important;
   }
 
   .schedule-table th,
   .schedule-table td{
-    border:1px solid #000;
-    height:19px !important;
+    border:1px solid #000 !important;
+    height:18px !important;
     padding:1px !important;
-    font-size:7.2px !important;
-    line-height:1 !important;
-    text-align:center;
-    vertical-align:middle;
+    font-size:9.5px !important;
+    font-weight:900 !important;
+    line-height:1.05 !important;
+    color:#000 !important;
+    text-align:center !important;
+    vertical-align:middle !important;
   }
 
   .schedule-table th{
     background:#ffc000 !important;
-    color:#000 !important;
   }
 
   .schedule-table .label-col{
-    width:42px !important;
+    width:46px !important;
   }
 
   .schedule-table .name-col{
-    width:37px !important;
+    width:54px !important;
   }
 
   .schedule-table .time-col{
-    width:48px !important;
+    width:60px !important;
   }
 
   .schedule-table select{
-    width:100%;
-    height:17px !important;
-    border:0;
-    background:transparent;
-    appearance:none;
-    -webkit-appearance:none;
-    font-size:7px !important;
-    font-weight:800;
+    width:100% !important;
+    height:16px !important;
+    border:0 !important;
+    background:transparent !important;
+    color:#000 !important;
+    appearance:none !important;
+    -webkit-appearance:none !important;
+    font-size:9.5px !important;
+    font-weight:900 !important;
     padding:0 !important;
     line-height:1 !important;
+    text-align:center !important;
   }
 
-  button{
-    display:none !important;
-  }
-}
-@media print {
-  @page {
-    size: A4 landscape;
-    margin: 4mm;
+  .time-select{
+    font-size:8.8px !important;
+    letter-spacing:-1.1px !important;
   }
 
-  html,
-  body {
-    width: 297mm;
-    height: 210mm;
-    margin: 0 !important;
-    padding: 0 !important;
-    overflow: hidden !important;
-    background: #fff !important;
+  .schedule-table .summary-row td{
+    background:#d9ead3 !important;
   }
 
-  .wrap {
-    width: 100% !important;
-    max-width: none !important;
-    margin: 0 !important;
-    padding: 0 !important;
-    transform: scale(0.82);
-    transform-origin: top left;
+  .schedule-table .kitchen-head td{
+    background:#92d050 !important;
   }
 
-  .schedule-title {
-    font-size: 24px !important;
-    line-height: 1.1 !important;
-    margin: 0 0 3px 0 !important;
+  .schedule-table .kitchen-label{
+    background:#fff2cc !important;
   }
 
-  #dayOffSummary {
-    font-size: 9px !important;
-    line-height: 1.1 !important;
-    margin-bottom: 2px !important;
+  .schedule-table .exit-label{
+    background:#d9eaf7 !important;
   }
 
-  .schedule-table {
-    width: 121% !important;
-    table-layout: fixed !important;
-    border-collapse: collapse !important;
-  }
-
-  .schedule-table th,
-  .schedule-table td {
-    font-size: 10px !important;
-    font-weight: 900 !important;
-    padding: 2px 1px !important;
-    line-height: 1.05 !important;
-    height: 18px !important;
-    color: #000 !important;
-  }
-
-  .schedule-table select {
-    font-size: 10px !important;
-    font-weight: 900 !important;
-    padding: 0 !important;
-    height: 16px !important;
-    line-height: 1 !important;
-    border: none !important;
-    background: transparent !important;
-    color: #000 !important;
-    appearance: none !important;
-    -webkit-appearance: none !important;
-  }
-
-  .label-col {
-    width: 46px !important;
-  }
-
-  .name-col {
-    width: 58px !important;
-  }
-
-  .time-col {
-    width: 62px !important;
+  .schedule-table .wash-label{
+    background:#d9d2e9 !important;
   }
 
   .alert-cell,
-  .alert-cell select {
-    background: #ffe600 !important;
-    -webkit-print-color-adjust: exact !important;
-    print-color-adjust: exact !important;
-  }
-
-  .tabs,
-  .control-area,
-  .print-btn,
-  button,
-  .no-print,
-  #staffManager,
-  #loadingBox {
-    display: none !important;
+  .alert-cell select{
+    background:#ffe600 !important;
+    -webkit-print-color-adjust:exact !important;
+    print-color-adjust:exact !important;
   }
 }
