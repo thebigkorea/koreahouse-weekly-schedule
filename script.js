@@ -696,3 +696,235 @@ document.addEventListener("click", function(e){
     td.classList.toggle("alert-cell");
   }
 });
+/* ==========================================================
+   주간 근무표 이미지 복사
+========================================================== */
+
+async function copyScheduleImage(){
+  const tableCard =
+    document.querySelector(".table-card");
+
+  const tableScroll =
+    document.querySelector(".table-scroll");
+
+  const scheduleTable =
+    document.getElementById("scheduleTable");
+
+  const copyButton =
+    document.getElementById("copyImageButton");
+
+  if(!tableCard || !tableScroll || !scheduleTable){
+    alert("복사할 주간 근무표를 찾을 수 없습니다.");
+    return;
+  }
+
+  if(typeof html2canvas !== "function"){
+    alert(
+      "이미지 기능을 불러오지 못했습니다.\n" +
+      "페이지를 새로고침한 후 다시 시도하세요."
+    );
+    return;
+  }
+
+  const originalButtonText =
+    copyButton ? copyButton.innerHTML : "";
+
+  try{
+    if(copyButton){
+      copyButton.disabled = true;
+      copyButton.innerHTML =
+        "이미지 만드는 중...";
+    }
+
+    tableCard.classList.add(
+      "image-capture-mode"
+    );
+
+    /*
+     * 현재 화면에서 좌우로 가려진 부분까지
+     * 표 전체 너비를 이미지에 포함합니다.
+     */
+    const captureWidth =
+      Math.max(
+        scheduleTable.scrollWidth + 32,
+        1400
+      );
+
+    const canvas =
+      await html2canvas(
+        tableCard,
+        {
+          backgroundColor: "#ffffff",
+          scale: 2,
+          useCORS: true,
+          logging: false,
+          width: captureWidth,
+          windowWidth: captureWidth,
+          scrollX: 0,
+          scrollY: 0,
+
+          onclone: function(clonedDocument){
+            const clonedCard =
+              clonedDocument.querySelector(
+                ".table-card"
+              );
+
+            const clonedScroll =
+              clonedDocument.querySelector(
+                ".table-scroll"
+              );
+
+            const clonedTable =
+              clonedDocument.getElementById(
+                "scheduleTable"
+              );
+
+            if(clonedCard){
+              clonedCard.style.width =
+                captureWidth + "px";
+
+              clonedCard.style.maxWidth =
+                "none";
+
+              clonedCard.style.overflow =
+                "visible";
+            }
+
+            if(clonedScroll){
+              clonedScroll.style.width =
+                "100%";
+
+              clonedScroll.style.maxHeight =
+                "none";
+
+              clonedScroll.style.overflow =
+                "visible";
+            }
+
+            if(clonedTable){
+              clonedTable.style.width =
+                "100%";
+
+              clonedTable.style.minWidth =
+                "0";
+
+              clonedTable.style.tableLayout =
+                "fixed";
+            }
+          }
+        }
+      );
+
+    const blob =
+      await new Promise(function(resolve){
+        canvas.toBlob(
+          resolve,
+          "image/png"
+        );
+      });
+
+    if(!blob){
+      throw new Error(
+        "이미지를 만들지 못했습니다."
+      );
+    }
+
+    if(
+      navigator.clipboard &&
+      typeof ClipboardItem !== "undefined"
+    ){
+      await navigator.clipboard.write([
+        new ClipboardItem({
+          "image/png": blob
+        })
+      ]);
+
+      alert(
+        "주간 근무표 이미지가 복사되었습니다.\n\n" +
+        "카카오톡 대화창에서 Ctrl+V를 누르세요."
+      );
+
+    }else{
+      downloadScheduleImage(blob);
+
+      alert(
+        "이 브라우저에서는 이미지 직접 복사를 지원하지 않아\n" +
+        "PNG 이미지 파일로 저장했습니다."
+      );
+    }
+
+  }catch(err){
+    console.error(err);
+
+    alert(
+      "브라우저가 이미지 복사를 차단했습니다.\n" +
+      "이미지 파일로 저장하겠습니다."
+    );
+
+    try{
+      const fallbackCanvas =
+        await html2canvas(
+          tableCard,
+          {
+            backgroundColor:"#ffffff",
+            scale:2,
+            useCORS:true,
+            logging:false
+          }
+        );
+
+      fallbackCanvas.toBlob(
+        function(blob){
+          if(blob){
+            downloadScheduleImage(blob);
+          }
+        },
+        "image/png"
+      );
+
+    }catch(downloadError){
+      console.error(downloadError);
+
+      alert(
+        "이미지 생성에 실패했습니다.\n" +
+        "페이지를 새로고침한 후 다시 시도하세요."
+      );
+    }
+
+  }finally{
+    tableCard.classList.remove(
+      "image-capture-mode"
+    );
+
+    if(copyButton){
+      copyButton.disabled = false;
+      copyButton.innerHTML =
+        originalButtonText;
+    }
+  }
+}
+
+
+function downloadScheduleImage(blob){
+  const monday =
+    document.getElementById("mondayInput").value ||
+    "주간근무표";
+
+  const url =
+    URL.createObjectURL(blob);
+
+  const link =
+    document.createElement("a");
+
+  link.href = url;
+  link.download =
+    `한국의집_주간근무표_${monday}.png`;
+
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+
+  setTimeout(function(){
+    URL.revokeObjectURL(url);
+  }, 1000);
+}

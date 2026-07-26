@@ -553,6 +553,81 @@ footer{
   }
 }
 
+/* ==========================================================
+   주간 근무표 이미지 복사
+========================================================== */
+
+.image-copy{
+  background:#247a3b !important;
+  color:#fff !important;
+}
+
+.image-copy:disabled{
+  opacity:.65;
+  cursor:wait;
+}
+
+.table-card.image-capture-mode{
+  width:max-content;
+  max-width:none;
+  overflow:visible;
+  padding:16px;
+  border:0;
+  border-radius:0;
+  box-shadow:none;
+  background:#fff;
+}
+
+.image-capture-mode .table-head{
+  display:block;
+  text-align:center;
+  margin:0 0 8px;
+}
+
+.image-capture-mode .table-head h2{
+  margin:0;
+  color:#000;
+  font-size:26px;
+  font-weight:900;
+}
+
+.image-capture-mode #dayOffSummary{
+  display:block;
+  margin:4px 0 6px;
+  color:#b22222;
+  font-size:12px;
+  font-weight:900;
+  text-align:center;
+  white-space:nowrap;
+}
+
+.image-capture-mode .table-scroll{
+  width:max-content;
+  max-height:none;
+  overflow:visible;
+  border:0;
+  border-radius:0;
+}
+
+.image-capture-mode .schedule-table{
+  width:max-content;
+  min-width:1400px;
+  table-layout:fixed;
+  border-collapse:collapse;
+}
+
+.image-capture-mode .schedule-table th,
+.image-capture-mode .schedule-table td,
+.image-capture-mode .schedule-table .label-col{
+  position:static !important;
+}
+
+.image-capture-mode .schedule-table select{
+  appearance:none;
+  -webkit-appearance:none;
+  background:transparent;
+}
+
 /* ===========================
    A4 가로 1페이지 인쇄 전용
 =========================== */

@@ -8,7 +8,7 @@
   <meta name="description" content="한국의집 주간 스케줄표 작성 포털" />
   <meta name="theme-color" content="#8a5a2b" />
 
-  <link rel="stylesheet" href="style.css?v=2">
+  <link rel="stylesheet" href="style.css?v=3">
 </head>
 
 <body>
@@ -28,6 +28,7 @@
       <button type="button" onclick="loadCurrentWeeklySchedule()">📂 저장된 근무표</button>
       <button type="button" onclick="loadPreviousWeekPattern()">📋 전주 패턴 복사</button>
       <button type="button" onclick="saveWeeklySchedule()" class="primary">💾 저장</button>
+      <button type="button" id="copyImageButton" class="image-copy" onclick="copyScheduleImage()">  📷 이미지 복사</button>
       <button type="button" onclick="window.print()">🖨️ 인쇄</button>
     </div>
   </header>
@@ -110,6 +111,10 @@
     한국의집 주간 스케줄표 작성 포털 · 저장 데이터는 구글시트 원장에 기록됩니다.
   </footer>
 
-  <script src="./script.js"></script>
+  <script
+  src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js">
+</script>
+
+<script src="./script.js?v=3"></script>
 </body>
 </html>
