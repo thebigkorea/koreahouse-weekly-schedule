@@ -802,15 +802,44 @@ async function copyScheduleImage(){
             }
 
             if(clonedTable){
-              clonedTable.style.width =
-                "100%";
+  clonedTable.style.width =
+    "100%";
 
-              clonedTable.style.minWidth =
-                "0";
+  clonedTable.style.minWidth =
+    "0";
 
-              clonedTable.style.tableLayout =
-                "fixed";
-            }
+  clonedTable.style.tableLayout =
+    "fixed";
+
+  /*
+   * 이미지에서 select 선택상자를 일반 글자로 변경해
+   * 시간의 끝부분까지 모두 표시합니다.
+   */
+  clonedTable
+    .querySelectorAll("select")
+    .forEach(function(select){
+      const selectedOption =
+        select.options[
+          select.selectedIndex
+        ];
+
+      const value =
+        selectedOption
+          ? selectedOption.textContent
+          : select.value;
+
+      const text =
+        clonedDocument.createElement("span");
+
+      text.className =
+        "capture-select-text";
+
+      text.textContent =
+        value || "";
+
+      select.replaceWith(text);
+    });
+}
           }
         }
       );
