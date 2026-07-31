@@ -26,7 +26,7 @@ Version 1.0
   "use strict";
 
   const DAY_NAMES = ["월", "화", "수", "목", "금", "토", "일"];
-  const STORAGE_PREFIX = "KOREAHOUSE_HALL_SIMULATION_V1_";
+  const STORAGE_PREFIX = "KOREAHOUSE_HALL_SIMULATION_V2_";
 
   const HALL_ROWS = [
     { key: "총괄", label: "총괄" },
@@ -591,10 +591,7 @@ function getPositionGroup(slotPosition) {
       가능 포지션
     </th>
 
-    <th rowspan="2">
-      비고
-    </th>
-
+    
   </tr>
 
   <tr>
@@ -1106,16 +1103,7 @@ async function changeSimulationWeek(
 
   </td>
 
-  <td>
-
-    <input
-      type="text"
-      value="${escapeHtml(employee.memo)}"
-      data-employee-index="${index}"
-      data-field="memo">
-
-  </td>
-
+  
 </tr>
 
 `;
@@ -1145,14 +1133,13 @@ async function changeSimulationWeek(
 
 const defaultTime =
   field("defaultTime");
-      const memo = field("memo");
-
+      
       if (status) employee.status = status.value;
       if (priority) employee.priority = clampNumber(priority.value, 1, 100, 50);
       if (targetDays) employee.targetDays = clampNumber(targetDays.value, 1, 7, 5);
       
       if (defaultTime) employee.defaultTime = defaultTime.value.trim();
-      if (memo) employee.memo = memo.value.trim();
+     
 
       employee.availableDays = Array.from({ length: 7 }, (_, day) => {
         const checkbox = panel.querySelector(
