@@ -1229,88 +1229,323 @@ const defaultTime =
   }
 
   function generateSchedule() {
-    const assignments = Array.from({ length: 7 }, () => []);
-    const assignedDays = Object.fromEntries(
-      state.employees.map(employee => [employee.name, 0])
+
+  const assignments =
+    Array.from(
+      { length: 7 },
+      () => []
     );
 
-    const warnings = [];
-
-    for (let dayIndex = 0; dayIndex < 7; dayIndex++) {
-      const required = Math.max(0, state.requiredStaff[dayIndex]);
-      const slots = HALL_ROWS.slice(0, Math.min(required, HALL_ROWS.length));
-      const usedToday = new Set();
-      const dayOffNames = getDayOffNames(dayIndex);
-
-      slots.forEach((slot, rowIndex) => {
-        const candidates = state.employees
-          .filter(employee =>
-            employee.status === "근무가능" &&
-            employee.availableDays[dayIndex] &&
-            !dayOffNames.has(employee.name) &&
-            (
-  slot.key === "티카(H)"
-    ? (
-        employee.positions["티카(M)"] ||
-        employee.positions["티카(S)"]
+  const assignedDays =
+    Object.fromEntries(
+      state.employees.map(
+        employee => [
+          employee.name,
+          0
+        ]
       )
-    : employee.positions[
-        getPositionGroup(slot.key)
-      ]
-) &&
-            !usedToday.has(employee.name) &&
-            assignedDays[employee.name] < employee.targetDays
-          )
-          .sort((a, b) => {
-            const aBelowTarget = assignedDays[a.name] < a.targetDays ? 1 : 0;
-            const bBelowTarget = assignedDays[b.name] < b.targetDays ? 1 : 0;
+    );
 
-            if (aBelowTarget !== bBelowTarget) return bBelowTarget - aBelowTarget;
-            if (a.priority !== b.priority) return b.priority - a.priority;
-            if (assignedDays[a.name] !== assignedDays[b.name]) {
-              return assignedDays[a.name] - assignedDays[b.name];
-            }
-            return a.name.localeCompare(b.name, "ko");
-          });
+  const usedByDay =
+    Array.from(
+      { length: 7 },
+      () => new Set()
+    );
 
-        const selected = candidates[0];
+  const dayOffByDay =
+    Array.from(
+      { length: 7 },
+      (_, dayIndex) =>
+        getDayOffNames(dayIndex)
+    );
+
+  const warnings = [];
+
+  /*
+   * 요일 번호
+   * 0 월, 1 화, 2 수, 3 목,
+   * 4 금, 5 토, 6 일
+   *
+   * 주말을 먼저 배치하고
+   * 그다음 평일을 배치합니다.
+   */
+  const dayPriority = [
+    5, // 토요일
+    6, // 일요일
+    0, // 월요일
+    1, // 화요일
+    2, // 수요일
+    3, // 목요일
+    4  // 금요일
+  ];
+
+  const maxRequired =
+    Math.min(
+      HALL_ROWS.length,
+      Math.max(
+        ...state.requiredStaff
+      )
+    );
+
+  /*
+   * 날짜별로 한 번에 전부 채우지 않고
+   * 첫 번째 자리부터 날짜별로 순환합니다.
+   *
+   * 예:
+   * 토 1번 자리 → 일 1번 자리
+   * → 월 1번 자리 → 화 1번 자리...
+   *
+   * 다음에는
+   * 토 2번 자리 → 일 2번 자리...
+   *
+   * 이렇게 해야 부족 인원이
+   * 특정 날짜에 몰리지 않습니다.
+   */
+  for (
+    let rowIndex = 0;
+    rowIndex < maxRequired;
+    rowIndex++
+  ) {
+
+    dayPriority.forEach(
+      dayIndex => {
+
+        const required =
+          Math.max(
+            0,
+            state.requiredStaff[
+              dayIndex
+            ]
+          );
+
+        /*
+         * 이 날짜의 필요 인원보다
+         * 아래쪽 자리이면 배치하지 않습니다.
+         */
+        if (rowIndex >= required) {
+          return;
+        }
+
+        /*
+         * 근무표 최대 자리보다 많으면
+         * 화면에 표시할 수 없습니다.
+         */
+        if (
+          rowIndex >=
+          HALL_ROWS.length
+        ) {
+          return;
+        }
+
+        const slot =
+          HALL_ROWS[rowIndex];
+
+        const usedToday =
+          usedByDay[dayIndex];
+
+        const dayOffNames =
+          dayOffByDay[dayIndex];
+
+        const candidates =
+          state.employees
+            .filter(
+              employee => {
+
+                let positionAvailable =
+                  false;
+
+                /*
+                 * 티카(H)는
+                 * 티카(M) 또는 티카(S)가
+                 * 가능한 직원이면 배치합니다.
+                 */
+                if (
+                  slot.key ===
+                  "티카(H)"
+                ) {
+
+                  positionAvailable =
+                    employee.positions[
+                      "티카(M)"
+                    ] ||
+                    employee.positions[
+                      "티카(S)"
+                    ];
+
+                } else {
+
+                  positionAvailable =
+                    employee.positions[
+                      getPositionGroup(
+                        slot.key
+                      )
+                    ];
+
+                }
+
+                return (
+                  employee.status ===
+                    "근무가능" &&
+
+                  employee
+                    .availableDays[
+                      dayIndex
+                    ] &&
+
+                  !dayOffNames.has(
+                    employee.name
+                  ) &&
+
+                  positionAvailable &&
+
+                  !usedToday.has(
+                    employee.name
+                  ) &&
+
+                  assignedDays[
+                    employee.name
+                  ] <
+                    employee.targetDays
+                );
+
+              }
+            )
+            .sort(
+              (a, b) => {
+
+                const aRemaining =
+                  a.targetDays -
+                  assignedDays[a.name];
+
+                const bRemaining =
+                  b.targetDays -
+                  assignedDays[b.name];
+
+                /*
+                 * 목표일수가 더 많이 남은
+                 * 직원을 먼저 배치합니다.
+                 */
+                if (
+                  aRemaining !==
+                  bRemaining
+                ) {
+                  return (
+                    bRemaining -
+                    aRemaining
+                  );
+                }
+
+                /*
+                 * 같은 조건이면
+                 * 우선순위가 높은 직원부터
+                 * 배치합니다.
+                 */
+                if (
+                  a.priority !==
+                  b.priority
+                ) {
+                  return (
+                    b.priority -
+                    a.priority
+                  );
+                }
+
+                /*
+                 * 현재까지 적게 배치된 직원에게
+                 * 우선권을 줍니다.
+                 */
+                if (
+                  assignedDays[a.name] !==
+                  assignedDays[b.name]
+                ) {
+                  return (
+                    assignedDays[a.name] -
+                    assignedDays[b.name]
+                  );
+                }
+
+                return a.name.localeCompare(
+                  b.name,
+                  "ko"
+                );
+
+              }
+            );
+
+        const selected =
+          candidates[0];
 
         if (selected) {
-          assignments[dayIndex].push({
-            rowIndex,
+
+          assignments[
+            dayIndex
+          ].push({
+            rowIndex: rowIndex,
             position: slot.key,
             name: selected.name,
-            time: selected.defaultTime || "",
+            time:
+              selected.defaultTime ||
+              "",
             shortage: false
           });
 
-          usedToday.add(selected.name);
-          assignedDays[selected.name]++;
+          usedToday.add(
+            selected.name
+          );
+
+          assignedDays[
+            selected.name
+          ]++;
+
         } else {
-          assignments[dayIndex].push({
-            rowIndex,
+
+          assignments[
+            dayIndex
+          ].push({
+            rowIndex: rowIndex,
             position: slot.key,
             name: "신규채용 필요",
             time: "",
             shortage: true
           });
-        }
-      });
 
-      if (required > HALL_ROWS.length) {
+        }
+
+      }
+    );
+
+  }
+
+  /*
+   * 필요인원이 현재 근무표의
+   * 최대 13자리를 초과하는 경우
+   */
+  state.requiredStaff.forEach(
+    (required, dayIndex) => {
+
+      if (
+        required >
+        HALL_ROWS.length
+      ) {
+
         warnings.push(
           `${DAY_NAMES[dayIndex]}요일 필요인원 ${required}명 중 현재 근무표에는 ${HALL_ROWS.length}명까지만 표시할 수 있습니다.`
         );
-      }
-    }
 
-    return {
-      assignments,
-      assignedDays,
-      warnings,
-      createdAt: new Date().toISOString()
-    };
-  }
+      }
+
+    }
+  );
+
+  return {
+    assignments: assignments,
+    assignedDays: assignedDays,
+    warnings: warnings,
+    createdAt:
+      new Date().toISOString()
+  };
+
+}
 
   function getHallTableRows() {
     const body = document.getElementById("scheduleBody");
