@@ -45,22 +45,47 @@ Version 1.0
   ];
 
   const POSITION_KEYS = [
-    "총괄",
-    "티카(M1)",
-    "티카(S1)",
-    "티카(M2)",
-    "티카(S2)",
-    "티카(H)",
-    "serving"
-  ];
+  "총괄",
+  "티카(M)",
+  "티카(S)",
+  "serving"
+];
+
+function getPositionGroup(slotPosition) {
+
+  if (slotPosition === "총괄") {
+    return "총괄";
+  }
+
+  if (
+    slotPosition === "티카(M1)" ||
+    slotPosition === "티카(M2)"
+  ) {
+    return "티카(M)";
+  }
+
+  if (
+    slotPosition === "티카(S1)" ||
+    slotPosition === "티카(S2)"
+  ) {
+    return "티카(S)";
+  }
+
+  if (slotPosition === "serving") {
+    return "serving";
+  }
+
+  return "";
+}
 
   let state = {
-    monday: "",
-    requiredStaff: [13, 13, 13, 13, 13, 13, 13],
-    employees: [],
-    generated: null,
-    loaded: false
-  };
+  monday: "",
+  requiredStaff: [8, 8, 8, 8, 8, 8, 8],
+  employees: [],
+  timeOptions: [],
+  generated: null,
+  loaded: false
+};
 
   function escapeHtml(value) {
     return String(value ?? "")
@@ -113,47 +138,117 @@ Version 1.0
   }
 
   function defaultEmployee(name) {
-    return {
-      name,
-      status: "근무가능",
-      priority: 50,
-      targetDays: 5,
-      maxDays: 7,
-      defaultTime: "",
-      availableDays: [true, true, true, true, true, true, true],
-      positions: {
-        "총괄": true,
-        "티카(M1)": true,
-        "티카(S1)": true,
-        "티카(M2)": true,
-        "티카(S2)": true,
-        "티카(H)": true,
-        "serving": true
-      },
-      memo: ""
-    };
-  }
+
+  return {
+    name: name,
+    status: "근무가능",
+    priority: 50,
+
+    /*
+     * 목표일수가 자동배치 최대일수 역할도 합니다.
+     * 1일부터 7일까지 선택할 수 있습니다.
+     */
+    targetDays: 5,
+
+    defaultTime: "",
+
+    availableDays: [
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true
+    ],
+
+    positions: {
+      "총괄": true,
+      "티카(M)": true,
+      "티카(S)": true,
+      "serving": true
+    },
+
+    memo: ""
+  };
+
+}
 
   function normalizeEmployee(raw) {
-    const base = defaultEmployee(String(raw?.name || "").trim());
 
-    return {
-      ...base,
-      ...raw,
-      priority: clampNumber(raw?.priority, 1, 100, 50),
-      targetDays: clampNumber(raw?.targetDays, 1, 7, 5),
-      maxDays: clampNumber(raw?.maxDays, 1, 7, 7),
-      availableDays: Array.from({ length: 7 }, (_, i) =>
-        raw?.availableDays?.[i] !== false
+  const base =
+    defaultEmployee(
+      String(raw?.name || "").trim()
+    );
+
+  const oldPositions =
+    raw?.positions || {};
+
+  return {
+    ...base,
+    ...raw,
+
+    priority:
+      clampNumber(
+        raw?.priority,
+        1,
+        100,
+        50
       ),
-      positions: Object.fromEntries(
-        POSITION_KEYS.map(position => [
-          position,
-          raw?.positions?.[position] !== false
-        ])
-      )
-    };
-  }
+
+    targetDays:
+      clampNumber(
+        raw?.targetDays,
+        1,
+        7,
+        5
+      ),
+
+    availableDays:
+      Array.from(
+        { length: 7 },
+        function(_, index) {
+
+          return (
+            raw?.availableDays?.[index] !== false
+          );
+
+        }
+      ),
+
+    /*
+     * 기존에 저장된 M1/M2/S1/S2/H 자료도
+     * 새 포지션 구조로 자동 변환합니다.
+     */
+    positions: {
+
+      "총괄":
+        oldPositions["총괄"] !== false,
+
+      "티카(M)":
+        oldPositions["티카(M)"] !== undefined
+          ? oldPositions["티카(M)"]
+          : (
+              oldPositions["티카(M1)"] !== false ||
+              oldPositions["티카(M2)"] !== false ||
+              oldPositions["티카(H)"] !== false
+            ),
+
+      "티카(S)":
+        oldPositions["티카(S)"] !== undefined
+          ? oldPositions["티카(S)"]
+          : (
+              oldPositions["티카(S1)"] !== false ||
+              oldPositions["티카(S2)"] !== false ||
+              oldPositions["티카(H)"] !== false
+            ),
+
+      "serving":
+        oldPositions["serving"] !== false
+    }
+  };
+
+}
 
   function clampNumber(value, min, max, fallback) {
     const number = Number(value);
@@ -249,6 +344,33 @@ Version 1.0
 
     return [...names].sort((a, b) => a.localeCompare(b, "ko"));
   }
+
+  function extractTimeOptions(days) {
+
+  const result =
+    new Set();
+
+  days.forEach(function(day) {
+
+    const list =
+      day?.time || [];
+
+    list.forEach(function(time) {
+
+      const text =
+        String(time || "").trim();
+
+      if (text) {
+        result.add(text);
+      }
+
+    });
+
+  });
+
+  return Array.from(result);
+
+}
 
   function ensureStyles() {
     if (document.getElementById("simulationRuntimeStyles")) return;
@@ -427,7 +549,7 @@ Version 1.0
           <div>
             <h3>직원별 주간 근무조건</h3>
             <div class="simulation-help">
-              최대일수는 7일까지 허용하며, 40시간·50시간 기준으로 자동 제외하지 않습니다.
+              목표일수는 1일부터 7일까지 설정하며, 40시간·50시간 기준으로 자동 제외하지 않습니다.
             </div>
           </div>
           <button type="button" data-sim-action="all-days">전체 요일 가능</button>
@@ -436,18 +558,58 @@ Version 1.0
         <div class="simulation-table-scroll">
           <table class="simulation-staff-table">
             <thead>
-              <tr>
-                <th class="simulation-name-column">직원명</th>
-                <th>상태</th>
-                <th>우선순위</th>
-                <th>목표일수</th>
-                <th>최대일수</th>
-                <th>기본시간</th>
-                ${DAY_NAMES.map(day => `<th>${day}</th>`).join("")}
-                <th>가능 포지션</th>
-                <th>비고</th>
-              </tr>
-            </thead>
+
+  <tr>
+
+    <th
+      class="simulation-name-column"
+      rowspan="2">
+      직원명
+    </th>
+
+    <th rowspan="2">
+      상태
+    </th>
+
+    <th rowspan="2">
+      우선순위
+    </th>
+
+    <th rowspan="2">
+      목표일수
+    </th>
+
+    <th rowspan="2">
+      기본시간
+    </th>
+
+    <th colspan="7">
+      근무가능 요일
+    </th>
+
+    <th rowspan="2">
+      가능 포지션
+    </th>
+
+    <th rowspan="2">
+      비고
+    </th>
+
+  </tr>
+
+  <tr>
+
+    <th>월</th>
+    <th>화</th>
+    <th>수</th>
+    <th>목</th>
+    <th>금</th>
+    <th>토</th>
+    <th>일</th>
+
+  </tr>
+
+</thead>
             <tbody id="simulationStaffBody"></tbody>
           </table>
         </div>
@@ -574,14 +736,17 @@ if (simulationMondayInput) {
 
       if (field === "status") employee.status = target.value;
       if (field === "priority") employee.priority = clampNumber(target.value, 1, 100, 50);
-      if (field === "targetDays") employee.targetDays = clampNumber(target.value, 1, 7, 5);
-      if (field === "maxDays") {
-        employee.maxDays = clampNumber(target.value, 1, 7, 7);
-        if (employee.targetDays > employee.maxDays) {
-          employee.targetDays = employee.maxDays;
-          renderEmployees();
-        }
-      }
+      if (field === "targetDays") {
+
+  employee.targetDays =
+    clampNumber(
+      target.value,
+      1,
+      7,
+      5
+    );
+
+}
       if (field === "defaultTime") employee.defaultTime = target.value;
       if (field === "memo") employee.memo = target.value;
 
@@ -743,106 +908,222 @@ async function changeSimulationWeek(
     }).join("");
   }
 
+  function makeTimeOptions(selectedTime) {
+
+  const selected =
+    String(selectedTime || "").trim();
+
+  const options =
+    [...state.timeOptions];
+
+  /*
+   * 과거 저장값이 현재 구글시트 목록에 없어도
+   * 기존 선택값은 유지합니다.
+   */
+  if (
+    selected &&
+    !options.includes(selected)
+  ) {
+    options.unshift(selected);
+  }
+
+  let html =
+    `<option value="">시간 선택</option>`;
+
+  options.forEach(function(time) {
+
+    html += `
+      <option
+        value="${escapeHtml(time)}"
+        ${time === selected ? "selected" : ""}>
+        ${escapeHtml(time)}
+      </option>
+    `;
+
+  });
+
+  return html;
+
+}
+
   function renderEmployees() {
-    const tbody = document.getElementById("simulationStaffBody");
-    if (!tbody) return;
 
-    if (!state.employees.length) {
-      tbody.innerHTML = `
-        <tr>
-          <td colspan="15">홀 직원목록을 불러오지 못했습니다. 직원목록 새로고침 후 다시 시도하세요.</td>
-        </tr>
-      `;
-      return;
-    }
+  const tbody =
+    document.getElementById(
+      "simulationStaffBody"
+    );
 
-    tbody.innerHTML = state.employees.map((employee, index) => `
+  if (!tbody) return;
+
+  if (!state.employees.length) {
+
+    tbody.innerHTML = `
       <tr>
-        <td class="simulation-name-column">${escapeHtml(employee.name)}</td>
-
-        <td>
-          <select data-employee-index="${index}" data-field="status">
-            <option value="근무가능" ${employee.status === "근무가능" ? "selected" : ""}>근무가능</option>
-            <option value="근무불가" ${employee.status === "근무불가" ? "selected" : ""}>근무불가</option>
-            <option value="퇴직" ${employee.status === "퇴직" ? "selected" : ""}>퇴직</option>
-          </select>
-        </td>
-
-        <td>
-          <input
-            type="number"
-            min="1"
-            max="100"
-            value="${employee.priority}"
-            data-employee-index="${index}"
-            data-field="priority"
-          >
-        </td>
-
-        <td>
-          <select data-employee-index="${index}" data-field="targetDays">
-            ${makeDayOptions(employee.targetDays)}
-          </select>
-        </td>
-
-        <td>
-          <select data-employee-index="${index}" data-field="maxDays">
-            ${makeDayOptions(employee.maxDays)}
-          </select>
-        </td>
-
-        <td>
-          <input
-            type="text"
-            value="${escapeHtml(employee.defaultTime)}"
-            placeholder="예: 10:00-20:00"
-            data-employee-index="${index}"
-            data-field="defaultTime"
-          >
-        </td>
-
-        ${employee.availableDays.map((checked, dayIndex) => `
-          <td>
-            <label class="simulation-day-check">
-              <input
-                type="checkbox"
-                ${checked ? "checked" : ""}
-                data-employee-index="${index}"
-                data-field="availableDay"
-                data-day="${dayIndex}"
-              >
-            </label>
-          </td>
-        `).join("")}
-
-        <td>
-          <div class="simulation-position-box">
-            ${POSITION_KEYS.map(position => `
-              <label>
-                <input
-                  type="checkbox"
-                  ${employee.positions[position] ? "checked" : ""}
-                  data-employee-index="${index}"
-                  data-field="position"
-                  data-position="${escapeHtml(position)}"
-                >
-                ${escapeHtml(position)}
-              </label>
-            `).join("")}
-          </div>
-        </td>
-
-        <td>
-          <input
-            type="text"
-            value="${escapeHtml(employee.memo)}"
-            data-employee-index="${index}"
-            data-field="memo"
-          >
+        <td colspan="14">
+          홀 직원목록을 불러오지 못했습니다.
+          직원목록 새로고침 후 다시 시도하세요.
         </td>
       </tr>
-    `).join("");
+    `;
+
+    return;
   }
+
+  tbody.innerHTML =
+    state.employees
+      .map(function(employee, index) {
+
+        return `
+
+<tr>
+
+  <td class="simulation-name-column">
+    ${escapeHtml(employee.name)}
+  </td>
+
+  <td>
+
+    <select
+      data-employee-index="${index}"
+      data-field="status">
+
+      <option
+        value="근무가능"
+        ${employee.status === "근무가능" ? "selected" : ""}>
+        근무가능
+      </option>
+
+      <option
+        value="근무불가"
+        ${employee.status === "근무불가" ? "selected" : ""}>
+        근무불가
+      </option>
+
+      <option
+        value="퇴직"
+        ${employee.status === "퇴직" ? "selected" : ""}>
+        퇴직
+      </option>
+
+    </select>
+
+  </td>
+
+  <td>
+
+    <input
+      type="number"
+      min="1"
+      max="100"
+      value="${employee.priority}"
+      data-employee-index="${index}"
+      data-field="priority">
+
+  </td>
+
+  <td>
+
+    <select
+      data-employee-index="${index}"
+      data-field="targetDays">
+
+      ${makeDayOptions(employee.targetDays)}
+
+    </select>
+
+  </td>
+
+  <td>
+
+    <select
+      data-employee-index="${index}"
+      data-field="defaultTime">
+
+      ${makeTimeOptions(employee.defaultTime)}
+
+    </select>
+
+  </td>
+
+  ${employee.availableDays
+    .map(function(checked, dayIndex) {
+
+      return `
+
+<td>
+
+  <label class="simulation-day-check">
+
+    <input
+      type="checkbox"
+      ${checked ? "checked" : ""}
+      data-employee-index="${index}"
+      data-field="availableDay"
+      data-day="${dayIndex}">
+
+  </label>
+
+</td>
+
+`;
+
+    })
+    .join("")}
+
+  <td>
+
+    <div class="simulation-position-box">
+
+      ${POSITION_KEYS
+        .map(function(position) {
+
+          const displayName =
+            position === "serving"
+              ? "Serving"
+              : position;
+
+          return `
+
+<label>
+
+  <input
+    type="checkbox"
+    ${employee.positions[position] ? "checked" : ""}
+    data-employee-index="${index}"
+    data-field="position"
+    data-position="${escapeHtml(position)}">
+
+  ${escapeHtml(displayName)}
+
+</label>
+
+`;
+
+        })
+        .join("")}
+
+    </div>
+
+  </td>
+
+  <td>
+
+    <input
+      type="text"
+      value="${escapeHtml(employee.memo)}"
+      data-employee-index="${index}"
+      data-field="memo">
+
+  </td>
+
+</tr>
+
+`;
+
+      })
+      .join("");
+
+}
 
   function collectUiState() {
     const panel = document.getElementById("simulationPanel");
@@ -859,15 +1140,17 @@ async function changeSimulationWeek(
 
       const status = field("status");
       const priority = field("priority");
-      const targetDays = field("targetDays");
-      const maxDays = field("maxDays");
-      const defaultTime = field("defaultTime");
+      const targetDays =
+  field("targetDays");
+
+const defaultTime =
+  field("defaultTime");
       const memo = field("memo");
 
       if (status) employee.status = status.value;
       if (priority) employee.priority = clampNumber(priority.value, 1, 100, 50);
       if (targetDays) employee.targetDays = clampNumber(targetDays.value, 1, 7, 5);
-      if (maxDays) employee.maxDays = clampNumber(maxDays.value, 1, 7, 7);
+      
       if (defaultTime) employee.defaultTime = defaultTime.value.trim();
       if (memo) employee.memo = memo.value.trim();
 
@@ -888,9 +1171,7 @@ async function changeSimulationWeek(
         })
       );
 
-      if (employee.targetDays > employee.maxDays) {
-        employee.targetDays = employee.maxDays;
-      }
+      
     });
   }
 
@@ -920,9 +1201,18 @@ async function changeSimulationWeek(
             employee.status === "근무가능" &&
             employee.availableDays[dayIndex] &&
             !dayOffNames.has(employee.name) &&
-            employee.positions[slot.key] &&
+            (
+  slot.key === "티카(H)"
+    ? (
+        employee.positions["티카(M)"] ||
+        employee.positions["티카(S)"]
+      )
+    : employee.positions[
+        getPositionGroup(slot.key)
+      ]
+) &&
             !usedToday.has(employee.name) &&
-            assignedDays[employee.name] < employee.maxDays
+            assignedDays[employee.name] < employee.targetDays
           )
           .sort((a, b) => {
             const aBelowTarget = assignedDays[a.name] < a.targetDays ? 1 : 0;
@@ -1142,22 +1432,53 @@ async function changeSimulationWeek(
           errorCount++;
         }
 
-        if (!employee.positions[item.position]) {
-          messages.push(`${DAY_NAMES[dayIndex]}요일 ${item.name}: ${item.position} 포지션 불가`);
-          errorCount++;
-        }
+        let positionAvailable;
+
+if (item.position === "티카(H)") {
+
+  positionAvailable =
+    employee.positions["티카(M)"] ||
+    employee.positions["티카(S)"];
+
+} else {
+
+  const positionGroup =
+    getPositionGroup(
+      item.position
+    );
+
+  positionAvailable =
+    employee.positions[
+      positionGroup
+    ];
+
+}
+
+if (!positionAvailable) {
+
+  messages.push(
+    `${DAY_NAMES[dayIndex]}요일 ${item.name}: ${item.position} 포지션 불가`
+  );
+
+  errorCount++;
+
+}
       });
     });
 
     state.employees.forEach(employee => {
       const count = workDays[employee.name]?.size || 0;
 
-      if (count > employee.maxDays) {
-        messages.push(`${employee.name}: 최대 ${employee.maxDays}일보다 ${count - employee.maxDays}일 초과`);
-        errorCount++;
-      } else if (employee.status === "근무가능" && count < employee.targetDays) {
-        messages.push(`${employee.name}: 목표 ${employee.targetDays}일 중 ${count}일 배치`);
-      }
+      if (
+  employee.status === "근무가능" &&
+  count < employee.targetDays
+) {
+
+  messages.push(
+    `${employee.name}: 목표 ${employee.targetDays}일 중 ${count}일 배치`
+  );
+
+}
     });
 
     if (shortageCount > 0) {
@@ -1199,6 +1520,8 @@ async function changeSimulationWeek(
 
     const days = await fetchStaffDays();
     const names = extractHallNames(days);
+    state.timeOptions =
+  extractTimeOptions(days);
 
     state.employees = names.map(name =>
       normalizeEmployee(currentMap.get(name) || defaultEmployee(name))
@@ -1218,6 +1541,8 @@ async function changeSimulationWeek(
     const saved = !forceReload ? getExistingLocalData() : null;
     const days = await fetchStaffDays();
     const names = extractHallNames(days);
+    state.timeOptions =
+  extractTimeOptions(days);
 
     if (saved) {
       state.requiredStaff = Array.from({ length: 7 }, (_, index) =>
