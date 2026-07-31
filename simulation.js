@@ -469,6 +469,52 @@ function getPositionGroup(slotPosition) {
       .simulation-result-summary.error{background:#fde9e6;color:#8f271b}
       .simulation-result-summary.info{background:#edf3fa;color:#244d75}
       .simulation-result-summary.hidden{display:none!important}
+      .simulation-workday-summary{
+  margin-top:16px;
+  padding:16px;
+  border:1px solid #eadcca;
+  border-radius:14px;
+  background:#ffffff;
+}
+
+.simulation-workday-summary.hidden{
+  display:none !important;
+}
+
+.simulation-workday-summary h3{
+  margin:0 0 12px;
+}
+
+.simulation-workday-table{
+  width:100%;
+  border-collapse:collapse;
+}
+
+.simulation-workday-table th,
+.simulation-workday-table td{
+  padding:9px 10px;
+  border:1px solid #eadfd2;
+  text-align:center;
+}
+
+.simulation-workday-table th{
+  background:#f0dfc8;
+  font-weight:900;
+}
+
+.simulation-workday-table td:first-child{
+  font-weight:900;
+}
+
+.simulation-workday-short{
+  background:#fff3d8;
+  color:#785109;
+}
+
+.simulation-workday-complete{
+  background:#e9f6ec;
+  color:#175c2d;
+}
       .simulation-help{font-size:13px;color:#75685d;margin-top:6px}
       @media(max-width:900px){
         .required-staff-grid{grid-template-columns:repeat(2,minmax(110px,1fr))}
@@ -476,6 +522,7 @@ function getPositionGroup(slotPosition) {
       }
     `;
     document.head.appendChild(style);
+    
   }
 
   function ensureLayout() {
@@ -621,6 +668,7 @@ function getPositionGroup(slotPosition) {
       </div>
 
       <div id="simulationResultSummary" class="simulation-result-summary hidden"></div>
+      <div id="simulationWorkdaySummary" class="simulation-workday-summary hidden"></div>
     `;
 
     bindPanelEvents(panel);
@@ -1468,6 +1516,10 @@ if (!positionAvailable) {
 }
     });
 
+    renderEmployeeWorkdaySummary(
+  workDays
+);
+
     if (shortageCount > 0) {
       messages.unshift(`전체 부족 인원: ${shortageCount}명`);
     }
@@ -1489,6 +1541,116 @@ if (!positionAvailable) {
       (messages.length > 20 ? `<br>• 그 외 ${messages.length - 20}건` : "")
     );
   }
+
+  function renderEmployeeWorkdaySummary(
+  workDays
+) {
+
+  const element =
+    document.getElementById(
+      "simulationWorkdaySummary"
+    );
+
+  if (!element) return;
+
+  const rows =
+    state.employees
+      .filter(function(employee) {
+
+        return (
+          employee.status ===
+          "근무가능"
+        );
+
+      })
+      .map(function(employee) {
+
+        const actualDays =
+          workDays[employee.name]
+            ?.size || 0;
+
+        const difference =
+          actualDays -
+          employee.targetDays;
+
+        let statusText = "";
+        let rowClass = "";
+
+        if (difference < 0) {
+
+          statusText =
+            `${Math.abs(difference)}일 부족`;
+
+          rowClass =
+            "simulation-workday-short";
+
+        } else if (difference === 0) {
+
+          statusText =
+            "목표 달성";
+
+          rowClass =
+            "simulation-workday-complete";
+
+        } else {
+
+          statusText =
+            `${difference}일 초과`;
+
+          rowClass =
+            "simulation-workday-complete";
+
+        }
+
+        return `
+          <tr class="${rowClass}">
+            <td>
+              ${escapeHtml(employee.name)}
+            </td>
+
+            <td>
+              ${employee.targetDays}일
+            </td>
+
+            <td>
+              ${actualDays}일
+            </td>
+
+            <td>
+              ${statusText}
+            </td>
+          </tr>
+        `;
+
+      })
+      .join("");
+
+  element.innerHTML = `
+    <h3>직원별 주간 근무일수</h3>
+
+    <table class="simulation-workday-table">
+
+      <thead>
+        <tr>
+          <th>직원명</th>
+          <th>목표일수</th>
+          <th>배치일수</th>
+          <th>결과</th>
+        </tr>
+      </thead>
+
+      <tbody>
+        ${rows}
+      </tbody>
+
+    </table>
+  `;
+
+  element.classList.remove(
+    "hidden"
+  );
+
+}
 
   function setSummary(type, html) {
     const element = document.getElementById("simulationResultSummary");
