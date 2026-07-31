@@ -2036,15 +2036,60 @@ if (!positionAvailable) {
     renderEmployees();
   };
 
-  document.addEventListener("DOMContentLoaded", () => {
+  document.addEventListener(
+  "DOMContentLoaded",
+  () => {
+
     ensureStyles();
 
-    const mondayInput = document.getElementById("mondayInput");
+    const mondayInput =
+      document.getElementById("mondayInput");
+
     if (mondayInput) {
-      mondayInput.addEventListener("change", () => {
-        state.loaded = false;
-        state.monday = mondayInput.value;
-      });
+
+      mondayInput.addEventListener(
+        "change",
+        () => {
+
+          state.loaded = false;
+          state.monday = mondayInput.value;
+
+        }
+      );
+
     }
-  });
+
+    // 실제 근무표 수정 시 자동 재검사
+    const scheduleBody =
+      document.getElementById("scheduleBody");
+
+    if (scheduleBody) {
+
+      scheduleBody.addEventListener(
+        "change",
+        function (event) {
+
+          if (event.target.tagName !== "SELECT") {
+            return;
+          }
+
+          const panel =
+            document.getElementById("simulationPanel");
+
+          if (
+            panel &&
+            !panel.classList.contains("hidden")
+          ) {
+
+            validateCurrentTable();
+
+          }
+
+        }
+      );
+
+    }
+
+  }
+);
 })();
