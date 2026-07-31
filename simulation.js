@@ -268,6 +268,46 @@ Version 1.0
       .simulation-panel-head,.simulation-block-head,.simulation-actions{
         display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap
       }
+      .simulation-week-selector{
+  display:flex;
+  align-items:flex-end;
+  justify-content:space-between;
+  gap:14px;
+  flex-wrap:wrap;
+  margin-top:16px;
+  padding:14px 16px;
+  border:1px solid #eadcca;
+  border-radius:15px;
+  background:#ffffff;
+}
+
+.simulation-week-field{
+  display:flex;
+  flex-direction:column;
+  gap:7px;
+  min-width:220px;
+}
+
+.simulation-week-field label{
+  font-weight:900;
+  color:#4a2e1a;
+}
+
+.simulation-week-field input{
+  min-height:42px;
+  padding:9px 12px;
+  border:1px solid #d9c6af;
+  border-radius:10px;
+  background:#ffffff;
+  font:inherit;
+  font-weight:800;
+}
+
+.simulation-week-actions{
+  display:flex;
+  gap:8px;
+  flex-wrap:wrap;
+}  
       .simulation-kicker{margin:0 0 6px;color:#8a5a2b;font-size:12px;font-weight:900;letter-spacing:.12em}
       .simulation-panel h2,.simulation-panel h3{margin:0}
       .simulation-description{margin:8px 0 0;color:#6f6257}
@@ -331,6 +371,44 @@ Version 1.0
         </div>
         <button type="button" data-sim-action="close">닫기</button>
       </div>
+
+      <div class="simulation-week-selector">
+
+  <div class="simulation-week-field">
+
+    <label for="simulationMondayInput">
+      주간 선택
+    </label>
+
+    <input
+      type="date"
+      id="simulationMondayInput">
+
+  </div>
+
+  <div class="simulation-week-actions">
+
+    <button
+      type="button"
+      data-sim-action="prev-week">
+      ◀ 이전주
+    </button>
+
+    <button
+      type="button"
+      data-sim-action="this-week">
+      이번주
+    </button>
+
+    <button
+      type="button"
+      data-sim-action="next-week">
+      다음주 ▶
+    </button>
+
+  </div>
+
+</div>
 
       <div class="simulation-block">
         <div class="simulation-block-head">
@@ -398,8 +476,28 @@ Version 1.0
 
       try {
         if (action === "close") {
-          panel.classList.add("hidden");
-        } else if (action === "all-days") {
+
+  panel.classList.add("hidden");
+
+} else if (action === "prev-week") {
+
+  await changeSimulationWeek(
+    addDays(state.monday, -7)
+  );
+
+} else if (action === "this-week") {
+
+  await changeSimulationWeek(
+    getThisMondayText()
+  );
+
+} else if (action === "next-week") {
+
+  await changeSimulationWeek(
+    addDays(state.monday, 7)
+  );
+
+} else if (action === "all-days") {
           state.employees.forEach(employee => {
             employee.availableDays = [true, true, true, true, true, true, true];
           });
@@ -430,6 +528,30 @@ Version 1.0
         setSummary("error", error.message || "처리 중 오류가 발생했습니다.");
       }
     });
+
+    const simulationMondayInput =
+  panel.querySelector(
+    "#simulationMondayInput"
+  );
+
+if (simulationMondayInput) {
+
+  simulationMondayInput.addEventListener(
+    "change",
+    async function() {
+
+      if (!simulationMondayInput.value) {
+        return;
+      }
+
+      await changeSimulationWeek(
+        simulationMondayInput.value
+      );
+
+    }
+  );
+
+}
 
     panel.addEventListener("input", event => {
       const target = event.target;
@@ -474,13 +596,122 @@ Version 1.0
   }
 
   function renderWeekText() {
-    const element = document.getElementById("simulationWeekText");
-    if (!element) return;
 
-    const sunday = addDays(state.monday, 6);
-    element.textContent =
-      `${formatShortDate(state.monday)}~${formatShortDate(sunday)} 주간 조건을 기준으로 예상 근무표를 생성합니다.`;
+  const element =
+    document.getElementById(
+      "simulationWeekText"
+    );
+
+  const input =
+    document.getElementById(
+      "simulationMondayInput"
+    );
+
+  if (input) {
+    input.value = state.monday;
   }
+
+  if (!element) return;
+
+  const sunday =
+    addDays(state.monday, 6);
+
+  element.textContent =
+    `${formatShortDate(state.monday)}~${formatShortDate(sunday)} 주간 조건을 기준으로 예상 근무표를 생성합니다.`;
+
+}
+
+function getThisMondayText() {
+
+  const today =
+    new Date();
+
+  const day =
+    today.getDay();
+
+  const diff =
+    day === 0
+      ? -6
+      : 1 - day;
+
+  today.setDate(
+    today.getDate() + diff
+  );
+
+  return [
+    today.getFullYear(),
+    String(
+      today.getMonth() + 1
+    ).padStart(2, "0"),
+    String(
+      today.getDate()
+    ).padStart(2, "0")
+  ].join("-");
+
+}
+
+async function changeSimulationWeek(
+  nextMonday
+) {
+
+  if (!nextMonday) return;
+
+  /*
+   * 현재 작성한 조건을 현재 주차에
+   * 임시 저장합니다.
+   */
+  collectUiState();
+
+  if (state.monday) {
+    saveLocalData(false);
+  }
+
+  /*
+   * 메인 근무표 날짜와
+   * 시뮬레이션 날짜를 동기화합니다.
+   */
+  const mainMondayInput =
+    document.getElementById(
+      "mondayInput"
+    );
+
+  if (mainMondayInput) {
+
+    mainMondayInput.value =
+      nextMonday;
+
+    mainMondayInput.dispatchEvent(
+      new Event(
+        "change",
+        {
+          bubbles: true
+        }
+      )
+    );
+
+  }
+
+  state.loaded = false;
+  state.monday = nextMonday;
+
+  /*
+   * 선택한 주차의 직원·D/O·저장 조건을
+   * 다시 불러옵니다.
+   */
+  await initializeSimulation();
+
+  const panel =
+    document.getElementById(
+      "simulationPanel"
+    );
+
+  if (panel) {
+    panel.classList.remove(
+      "hidden"
+    );
+  }
+
+}
 
   function renderRequiredStaff() {
     const grid = document.getElementById("requiredStaffGrid");
