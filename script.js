@@ -957,3 +957,234 @@ function downloadScheduleImage(blob){
     URL.revokeObjectURL(url);
   }, 1000);
 }
+
+let simulationConditions = [];
+
+function toggleSimulationPanel() {
+
+  const panel =
+    document.getElementById("simulationPanel");
+
+  if (!panel) return;
+
+  panel.classList.toggle("hidden");
+
+  if (!panel.classList.contains("hidden")) {
+    loadSimulationData();
+  }
+
+}
+
+async function loadSimulationData() {
+
+  if (!staffOptions.length) {
+    await loadStaffOptions();
+  }
+
+  const map = {};
+
+  [
+    "hall",
+    "kitchen",
+    "prep",
+    "exit",
+    "wash"
+  ].forEach(role => {
+
+    staffOptions[0][role].forEach(name => {
+
+      if (!name) return;
+
+      if (!map[name]) {
+
+        map[name] = {
+
+          name,
+
+          status: "근무가능",
+
+          targetDays: 5,
+
+          maxDays: 7,
+
+          defaultTime: "",
+
+          days: [
+            true,
+            true,
+            true,
+            true,
+            true,
+            true,
+            true
+          ],
+
+          memo: ""
+
+        };
+
+      }
+
+    });
+
+  });
+
+  simulationConditions =
+    Object.values(map)
+      .sort((a, b) =>
+        a.name.localeCompare(
+          b.name,
+          "ko"
+        )
+      );
+
+  renderSimulationStaffTable();
+
+}
+
+function renderSimulationStaffTable() {
+
+  const tbody =
+    document.getElementById(
+      "simulationStaffBody"
+    );
+
+  if (!tbody) return;
+
+  tbody.innerHTML = "";
+
+  simulationConditions.forEach((staff, index) => {
+
+    const tr =
+      document.createElement("tr");
+
+    tr.innerHTML = `
+
+<td class="simulation-name-column">
+
+${staff.name}
+
+</td>
+
+<td>
+
+<select onchange="simulationConditions[${index}].status=this.value">
+
+<option ${staff.status==="근무가능"?"selected":""}>근무가능</option>
+
+<option ${staff.status==="근무불가"?"selected":""}>근무불가</option>
+
+<option ${staff.status==="퇴직"?"selected":""}>퇴직</option>
+
+</select>
+
+</td>
+
+<td>
+
+<select onchange="simulationConditions[${index}].targetDays=Number(this.value)">
+
+${makeDayOptions_(staff.targetDays)}
+
+</select>
+
+</td>
+
+<td>
+
+<select onchange="simulationConditions[${index}].maxDays=Number(this.value)">
+
+${makeDayOptions_(staff.maxDays)}
+
+</select>
+
+</td>
+
+<td>
+
+<input
+type="text"
+value="${staff.defaultTime}"
+oninput="simulationConditions[${index}].defaultTime=this.value">
+
+</td>
+
+${staff.days.map((v,d)=>`
+
+<td>
+
+<input
+type="checkbox"
+
+${v?"checked":""}
+
+onchange="
+simulationConditions[${index}].days[${d}]=this.checked;
+">
+
+</td>
+
+`).join("")}
+
+<td>
+
+<input
+type="text"
+value="${staff.memo}"
+oninput="
+simulationConditions[${index}].memo=this.value;
+">
+
+</td>
+
+`;
+
+    tbody.appendChild(tr);
+
+  });
+
+}
+
+function makeDayOptions_(selected) {
+
+  let html = "";
+
+  for (let i = 1; i <= 7; i++) {
+
+    html +=
+
+`<option value="${i}"
+
+${selected===i?"selected":""}
+
+>
+
+${i}일
+
+</option>`;
+
+  }
+
+  return html;
+
+}
+
+function setAllSimulationDaysAvailable(){
+
+  simulationConditions.forEach(staff=>{
+
+    staff.days=[
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true
+    ];
+
+  });
+
+  renderSimulationStaffTable();
+
+}

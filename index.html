@@ -24,6 +24,7 @@
     <div class="top-actions">
       <button type="button" onclick="loadStaffOptions()">🔄 직원목록 새로고침</button>
       <button type="button" onclick="toggleStaffManager()">👥 직원관리</button>
+      <button type="button" class="simulation-button" onclick="toggleSimulationPanel()">📊 인력 시뮬레이션</button>
       <button type="button" class="primary" onclick="generateNextWeekSchedule()">📅 다음주 자동생성</button>
       <button type="button" onclick="loadCurrentWeeklySchedule()">📂 저장된 근무표</button>
       <button type="button" onclick="loadPreviousWeekPattern()">📋 전주 패턴 복사</button>
@@ -90,6 +91,166 @@
       </div>
 
       <div id="weeklyStaffList" class="weekly-staff-list"></div>
+    </section>
+
+        <!-- =====================================================
+         홀 인력 시뮬레이션
+    ====================================================== -->
+    <section id="simulationPanel" class="simulation-panel hidden">
+
+      <div class="simulation-panel-head">
+        <div>
+          <p class="simulation-kicker">
+            HALL STAFF SIMULATION
+          </p>
+
+          <h2>홀 인력 시뮬레이션</h2>
+
+          <p id="simulationWeekText">
+            선택한 주간을 기준으로 예상 근무표를 생성합니다.
+          </p>
+        </div>
+
+        <button
+          type="button"
+          onclick="toggleSimulationPanel()">
+          닫기
+        </button>
+      </div>
+
+
+      <!-- 날짜별 필요 인원 -->
+      <div class="simulation-block">
+
+        <div class="simulation-block-head">
+          <div>
+            <h3>날짜별 필요 홀 인원</h3>
+            <p>
+              월요일부터 일요일까지 필요한 홀 인원을 입력합니다.
+            </p>
+          </div>
+        </div>
+
+        <div
+          id="requiredStaffGrid"
+          class="required-staff-grid">
+        </div>
+
+      </div>
+
+
+      <!-- 직원별 근무조건 -->
+      <div class="simulation-block">
+
+        <div class="simulation-block-head">
+          <div>
+            <h3>직원별 주간 근무조건</h3>
+
+            <p>
+              목표 근무일수와 최대 근무일수는 1일부터 7일까지 설정할 수 있습니다.
+            </p>
+          </div>
+
+          <button
+            type="button"
+            onclick="setAllSimulationDaysAvailable()">
+            전체 요일 가능
+          </button>
+        </div>
+
+        <div class="simulation-table-scroll">
+
+          <table class="simulation-staff-table">
+
+            <thead>
+              <tr>
+                <th class="simulation-name-column">
+                  직원명
+                </th>
+
+                <th>
+                  상태
+                </th>
+
+                <th>
+                  목표일수
+                </th>
+
+                <th>
+                  최대일수
+                </th>
+
+                <th>
+                  기본시간
+                </th>
+
+                <th>월</th>
+                <th>화</th>
+                <th>수</th>
+                <th>목</th>
+                <th>금</th>
+                <th>토</th>
+                <th>일</th>
+
+                <th class="simulation-note-column">
+                  비고
+                </th>
+              </tr>
+            </thead>
+
+            <tbody id="simulationStaffBody">
+            </tbody>
+
+          </table>
+
+        </div>
+
+      </div>
+
+
+      <!-- 실행 버튼 -->
+      <div class="simulation-actions">
+
+        <button
+          type="button"
+          onclick="loadSimulationData()">
+          🔄 조건 불러오기
+        </button>
+
+        <button
+          type="button"
+          onclick="saveSimulationConditions()">
+          💾 조건 저장
+        </button>
+
+        <button
+          type="button"
+          class="primary"
+          onclick="generateSimulationSchedule()">
+          ⚙️ 예상 근무표 생성
+        </button>
+
+        <button
+          type="button"
+          onclick="fillOnlyEmptyHallSlots()">
+          빈 자리만 채우기
+        </button>
+
+        <button
+          type="button"
+          onclick="validateSimulationSchedule()">
+          조건 다시 검사
+        </button>
+
+      </div>
+
+
+      <!-- 결과 요약 -->
+      <div
+        id="simulationResultSummary"
+        class="simulation-result-summary hidden">
+      </div>
+
     </section>
 
     <section class="table-card">
