@@ -268,22 +268,32 @@ function getPositionGroup(slotPosition) {
   }
 
   function saveLocalData(showMessage = true) {
-    collectUiState();
 
-    const payload = {
-      monday: state.monday,
-      requiredStaff: state.requiredStaff,
-      employees: state.employees,
-      generated: state.generated,
-      savedAt: new Date().toISOString()
-    };
+  collectUiState();
 
-    localStorage.setItem(storageKey(), JSON.stringify(payload));
+  const payload = {
+    monday: state.monday,
+    requiredStaff: state.requiredStaff,
+    employees: state.employees,
+    generated: state.generated,
+    savedAt: new Date().toISOString()
+  };
 
-    if (showMessage) {
-      setSummary("success", "선택한 주간의 인력 조건을 임시 저장했습니다.");
-    }
+  localStorage.setItem(
+    storageKey(),
+    JSON.stringify(payload)
+  );
+
+  if (showMessage) {
+
+    setSummary(
+      "success",
+      "✅ 조건이 저장되었습니다."
+    );
+
   }
+
+}
 
   function getGlobalStaffDays() {
     try {
@@ -802,6 +812,8 @@ if (simulationMondayInput) {
       if (field === "position") {
         employee.positions[target.dataset.position] = target.checked;
       }
+
+      saveLocalData(false);
     });
   }
 
