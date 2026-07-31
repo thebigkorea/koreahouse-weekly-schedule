@@ -1546,7 +1546,7 @@ if (!positionAvailable) {
 
     if (saved) {
       state.requiredStaff = Array.from({ length: 7 }, (_, index) =>
-        clampNumber(saved.requiredStaff?.[index], 0, 99, 13)
+        clampNumber(saved.requiredStaff?.[index], 0, 99, 7)
       );
 
       const savedMap = new Map(
@@ -1566,7 +1566,7 @@ if (!positionAvailable) {
 
       state.generated = saved.generated || null;
     } else {
-      state.requiredStaff = [13, 13, 13, 13, 13, 13, 13];
+      state.requiredStaff = [7, 7, 7, 7, 7, 7, 7];
       state.employees = names.map(defaultEmployee);
       state.generated = null;
     }
