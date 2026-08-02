@@ -1,6 +1,6 @@
 const API_URL =
-  "https://script.google.com/macros/s/AKfycbyGjDH-JH_XWPggnOJEY74CplkiIJxpl6MD_1xJX6fhS_o5KagI4H2ozSEbXleBDoPTOw/exec";
-
+  "https://script.google.com/macros/s/AKfycbyxNHxdt7xwXXp1OKib0PHHNc9qS1vXOlzaUCVsUJgqMmdpIcvVQsa2vY0hQgoSE-ab9Q/exec";
+  
 const DAYS = ["월", "화", "수", "목", "금", "토", "일"];
 
 const ROWS = [
