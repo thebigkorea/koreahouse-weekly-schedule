@@ -125,6 +125,32 @@ function setThisWeek(){
   loadStaffOptions();
 }
 
+async function loadThisWeekSchedule() {
+  closeStaffManager();
+
+  const monday =
+    getMonday(new Date());
+
+  document.getElementById(
+    "mondayInput"
+  ).value =
+    formatDateInput(monday);
+
+  await loadCurrentWeeklySchedule(true);
+
+  const tableCard =
+    document.querySelector(
+      ".table-card"
+    );
+
+  if (tableCard) {
+    tableCard.scrollIntoView({
+      behavior:"smooth",
+      block:"start"
+    });
+  }
+}
+
 function setNextWeek(){
   closeStaffManager();
 

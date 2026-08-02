@@ -30,10 +30,17 @@
   </button>
 
   <button
-    type="button"
-    onclick="loadCurrentWeeklySchedule()">
-    📂 기존 근무표 열기
-  </button>
+  type="button"
+  class="primary"
+  onclick="loadThisWeekSchedule()">
+  📅 이번주 근무표 조회
+</button>
+
+<button
+  type="button"
+  onclick="loadCurrentWeeklySchedule()">
+  📂 선택 주 근무표 조회
+</button>
 
   <button
     type="button"
@@ -172,7 +179,7 @@
 
     <li>
       <strong>기존 근무표 확인</strong><br>
-      상단의 ‘기존 근무표 열기’를 눌러 선택된 주의 저장 근무표를 불러옵니다.
+      상단의 ‘이번주 근무표 조회’를 눌러 선택된 주의 저장 근무표를 불러옵니다.
     </li>
 
   </ol>
@@ -402,7 +409,7 @@
   src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js">
 </script>
 
-<script src="./script.js?v=7"></script>
+<script src="./script.js?v=8"></script>
 <script src="simulation.js?v=4"></script>
 </body>
 </html>
