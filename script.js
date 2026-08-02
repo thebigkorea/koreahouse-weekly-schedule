@@ -158,9 +158,18 @@ async function loadStaffOptions(){
     }
 
     weeklyOptions = data.data || [];
-    renderTable();
+renderTable();
 
-    loadCurrentWeeklySchedule(false);
+/*
+ * 직원목록으로 표를 만들었으므로
+ * 로딩 표시는 즉시 종료합니다.
+ */
+showLoading(false);
+
+/*
+ * 저장 근무표는 화면 뒤에서 조용히 조회합니다.
+ */
+loadCurrentWeeklySchedule(false);
 
   }catch(err){
     console.error(err);
@@ -508,7 +517,9 @@ async function loadCurrentWeeklySchedule(showMessage = true) {
     return;
   }
 
+  if (showMessage) {
   showLoading(true);
+}
 
   try {
     const optionUrl =
@@ -554,8 +565,10 @@ async function loadCurrentWeeklySchedule(showMessage = true) {
     alert("기존 근무표를 불러오지 못했습니다.");
   }
   } finally {
+  if (showMessage) {
     showLoading(false);
   }
+}
 }
 
 function applyWeeklyScheduleToTable(schedule) {
