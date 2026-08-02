@@ -514,8 +514,8 @@ async function loadCurrentWeeklySchedule(showMessage = true) {
     const optionUrl =
       `${API_URL}?action=getStaffOptions&monday=${encodeURIComponent(monday)}&t=${Date.now()}`;
 
-    const optionRes = await fetch(optionUrl);
-    const optionData = await optionRes.json();
+    const optionData =
+  await fetchJsonWithRetry_(optionUrl);
 
     if (!optionData.ok) {
       throw new Error(optionData.message || "직원목록 조회 실패");
@@ -527,8 +527,8 @@ async function loadCurrentWeeklySchedule(showMessage = true) {
     const scheduleUrl =
       `${API_URL}?action=getWeeklySchedule&monday=${encodeURIComponent(monday)}&t=${Date.now()}`;
 
-    const scheduleRes = await fetch(scheduleUrl);
-    const scheduleData = await scheduleRes.json();
+    const scheduleData =
+  await fetchJsonWithRetry_(scheduleUrl);
 
     if (!scheduleData.ok) {
       throw new Error(scheduleData.message || "기존 근무표 조회 실패");
@@ -548,8 +548,11 @@ async function loadCurrentWeeklySchedule(showMessage = true) {
     }
 
   } catch (err) {
-    console.error(err);
+  console.error(err);
+
+  if (showMessage) {
     alert("기존 근무표를 불러오지 못했습니다.");
+  }
   } finally {
     showLoading(false);
   }
