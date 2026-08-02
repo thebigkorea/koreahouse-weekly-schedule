@@ -164,45 +164,8 @@ function showLoading(show){
   document.getElementById("loadingBox").classList.toggle("hidden", !show);
 }
 
-async function loadStaffOptions(){
-  const monday = document.getElementById("mondayInput").value;
-
-  if(!monday){
-    alert("주간 시작일을 선택하세요.");
-    return;
-  }
-
-  showLoading(true);
-
-  try{
-    const url = `${API_URL}?action=getStaffOptions&monday=${encodeURIComponent(monday)}&t=${Date.now()}`;
-    const data =
-  await fetchJsonWithRetry_(url);
-
-    if(!data.ok){
-      throw new Error(data.message || "직원목록 조회 실패");
-    }
-
-    weeklyOptions = data.data || [];
-renderTable();
-
-/*
- * 직원목록으로 표를 만들었으므로
- * 로딩 표시는 즉시 종료합니다.
- */
-showLoading(false);
-
-/*
- * 저장 근무표는 화면 뒤에서 조용히 조회합니다.
- */
-loadCurrentWeeklySchedule(false);
-
-  }catch(err){
-    console.error(err);
-    alert("직원 목록을 불러오지 못했습니다. Apps Script 배포와 권한을 확인하세요.");
-  }finally{
-    showLoading(false);
-  }
+async function loadStaffOptions() {
+  return loadCurrentWeeklySchedule(false);
 }
 
 function renderTable(){
@@ -453,11 +416,15 @@ async function saveWeeklySchedule(){
   }
 }
 
-async function loadPreviousWeekPattern(options = {}) {
+async function loadPreviousWeekPattern(
+  options = {}
+) {
   closeStaffManager();
 
   const monday =
-    document.getElementById("mondayInput").value;
+    document.getElementById(
+      "mondayInput"
+    ).value;
 
   if (!monday) {
     alert("주간 시작일을 선택하세요.");
@@ -465,46 +432,45 @@ async function loadPreviousWeekPattern(options = {}) {
   }
 
   if (options.skipConfirm !== true) {
-    const ok = confirm(
-      "전주 근무표를 불러올까요?\n현재 입력한 내용은 전주 근무표로 변경됩니다."
-    );
+    const confirmed =
+      confirm(
+        "전주 근무표를 불러올까요?\n현재 입력한 내용은 전주 근무표로 변경됩니다."
+      );
 
-    if (!ok) return false;
+    if (!confirmed) return false;
   }
 
   showLoading(true);
 
   try {
-    const optionUrl =
-      `${API_URL}?action=getStaffOptions&monday=${encodeURIComponent(monday)}&t=${Date.now()}`;
+    const url =
+      `${API_URL}?action=getPreviousWeekBundle&monday=${encodeURIComponent(monday)}&t=${Date.now()}`;
 
-    const optionData =
-  await fetchJsonWithRetry_(optionUrl);
+    /*
+     * 직원목록·D/O·전주표를
+     * 한 번의 요청으로 받습니다.
+     */
+    const result =
+      await fetchJsonWithRetry_(url);
 
-    if (!optionData.ok) {
+    if (!result.ok) {
       throw new Error(
-        optionData.message || "직원목록 조회 실패"
+        result.message ||
+        "전주 근무표 통합조회 실패"
       );
     }
 
-    weeklyOptions = optionData.data || [];
+    weeklyOptions =
+      result.data.options || [];
+
     renderTable();
 
-    const patternUrl =
-      `${API_URL}?action=getPreviousWeekSchedule&monday=${encodeURIComponent(monday)}&t=${Date.now()}`;
+    const previous =
+      result.data.previous || {};
 
-    const patternData =
-  await fetchJsonWithRetry_(patternUrl);
-
-    if (!patternData.ok) {
-      throw new Error(
-        patternData.message || "전주 근무표 조회 실패"
-      );
-    }
-
-    if (!patternData.data.found) {
+    if (!previous.found) {
       alert(
-        patternData.data.message ||
+        previous.message ||
         "복사할 전주 근무표가 없습니다."
       );
 
@@ -512,19 +478,19 @@ async function loadPreviousWeekPattern(options = {}) {
     }
 
     applyWeeklyScheduleToTable(
-      patternData.data.schedule
+      previous.schedule
     );
 
     if (options.silent !== true) {
       alert(
-        "전주 근무표를 불러왔습니다.\nD/O 직원은 자동 제외되었습니다."
+        "전주 근무표를 불러왔습니다.\n다음주 D/O 직원은 자동 제외되었습니다."
       );
     }
 
     return true;
 
-  } catch (err) {
-    console.error(err);
+  } catch (error) {
+    console.error(error);
     alert("전주 근무표를 불러오지 못했습니다.");
     return false;
 
@@ -533,68 +499,84 @@ async function loadPreviousWeekPattern(options = {}) {
   }
 }
 
-async function loadCurrentWeeklySchedule(showMessage = true) {
+async function loadCurrentWeeklySchedule(
+  showMessage = true
+) {
   closeStaffManager();
 
-  const monday = document.getElementById("mondayInput").value;
+  const monday =
+    document.getElementById(
+      "mondayInput"
+    ).value;
 
   if (!monday) {
     alert("주간 시작일을 선택하세요.");
-    return;
+    return false;
   }
 
-  if (showMessage) {
   showLoading(true);
-}
 
   try {
-    const optionUrl =
-      `${API_URL}?action=getStaffOptions&monday=${encodeURIComponent(monday)}&t=${Date.now()}`;
+    const url =
+      `${API_URL}?action=getWeeklyScheduleBundle&monday=${encodeURIComponent(monday)}&t=${Date.now()}`;
 
-    const optionData =
-  await fetchJsonWithRetry_(optionUrl);
+    /*
+     * 직원목록·D/O·근무표를
+     * 한 번의 요청으로 받습니다.
+     */
+    const result =
+      await fetchJsonWithRetry_(url);
 
-    if (!optionData.ok) {
-      throw new Error(optionData.message || "직원목록 조회 실패");
+    if (!result.ok) {
+      throw new Error(
+        result.message ||
+        "근무표 통합조회 실패"
+      );
     }
 
-    weeklyOptions = optionData.data || [];
+    weeklyOptions =
+      result.data.options || [];
+
     renderTable();
 
-    const scheduleUrl =
-      `${API_URL}?action=getWeeklySchedule&monday=${encodeURIComponent(monday)}&t=${Date.now()}`;
+    const saved =
+      result.data.schedule || {};
 
-    const scheduleData =
-  await fetchJsonWithRetry_(scheduleUrl);
-
-    if (!scheduleData.ok) {
-      throw new Error(scheduleData.message || "기존 근무표 조회 실패");
-    }
-
-    if (!scheduleData.data.found) {
+    if (!saved.found) {
       if (showMessage) {
-        alert(scheduleData.data.message || "해당 주간 근무표가 없습니다.");
+        alert(
+          saved.message ||
+          "해당 주간에 저장된 근무표가 없습니다."
+        );
       }
-      return;
+
+      return false;
     }
 
-    applyWeeklyScheduleToTable(scheduleData.data.schedule);
+    applyWeeklyScheduleToTable(
+      saved.schedule
+    );
 
     if (showMessage) {
-      alert("기존 근무표를 불러왔습니다.");
+      alert("이번주 근무표를 불러왔습니다.");
     }
 
-  } catch (err) {
-  console.error(err);
+    return true;
 
-  if (showMessage) {
-    alert("기존 근무표를 불러오지 못했습니다.");
-  }
+  } catch (error) {
+    console.error(error);
+
+    if (showMessage) {
+      alert(
+        "이번주 근무표를 불러오지 못했습니다."
+      );
+    }
+
+    return false;
+
   } finally {
-  if (showMessage) {
     showLoading(false);
   }
-}
 }
 
 function applyWeeklyScheduleToTable(schedule) {
