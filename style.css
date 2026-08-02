@@ -810,3 +810,162 @@ footer{
     print-color-adjust:exact !important;
   }
 }
+
+/* ==================================
+   근무표 작성 단계 안내
+================================== */
+
+.schedule-workflow{
+  margin:14px 0;
+  padding:20px;
+  background:#fff;
+  border:1px solid var(--line);
+  border-radius:24px;
+  box-shadow:0 10px 26px rgba(52,32,16,.07);
+}
+
+.workflow-title{
+  display:flex;
+  align-items:center;
+  gap:12px;
+  margin-bottom:16px;
+}
+
+.workflow-title strong{
+  font-size:21px;
+  color:var(--brown-dark);
+}
+
+.workflow-title span{
+  color:var(--muted);
+  font-weight:700;
+}
+
+.workflow-steps{
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:12px;
+}
+
+.workflow-step{
+  display:flex;
+  align-items:flex-start;
+  gap:12px;
+  padding:16px;
+  border:1px solid #eadbc8;
+  border-radius:18px;
+  background:#fffaf4;
+}
+
+.workflow-step > div{
+  flex:1;
+}
+
+.workflow-step strong{
+  display:block;
+  margin-bottom:5px;
+  font-size:16px;
+}
+
+.workflow-step p{
+  min-height:42px;
+  margin:0 0 12px;
+  color:var(--muted);
+  font-size:13px;
+  line-height:1.55;
+}
+
+.step-number{
+  flex-shrink:0;
+  width:30px;
+  height:30px;
+  display:grid;
+  place-items:center;
+  border-radius:50%;
+  background:var(--brown);
+  color:#fff;
+  font-weight:900;
+}
+
+.usage-guide{
+  margin:14px 0;
+  padding:22px;
+  border:2px solid #c89b62;
+  border-radius:22px;
+  background:#fff8ec;
+}
+
+.usage-guide-head{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+}
+
+.usage-guide-head h2{
+  margin:0;
+  color:var(--brown-dark);
+}
+
+.usage-guide ol{
+  margin:18px 0 0;
+  padding-left:24px;
+}
+
+.usage-guide li{
+  margin:10px 0;
+  line-height:1.6;
+}
+
+.schedule-final-actions{
+  position:sticky;
+  bottom:0;
+  z-index:20;
+  display:flex;
+  justify-content:flex-end;
+  gap:10px;
+  margin-top:14px;
+  padding:14px;
+  border:1px solid var(--line);
+  border-radius:16px;
+  background:rgba(255,250,242,.96);
+  box-shadow:0 -6px 20px rgba(52,32,16,.08);
+}
+
+.schedule-final-actions button{
+  min-width:150px;
+  font-size:15px;
+}
+
+@media(max-width:900px){
+
+  .workflow-steps{
+    grid-template-columns:1fr;
+  }
+
+  .workflow-step p{
+    min-height:0;
+  }
+
+  .schedule-final-actions{
+    position:static;
+    display:grid;
+    grid-template-columns:1fr;
+  }
+
+  .schedule-final-actions button{
+    width:100%;
+  }
+
+}
+
+@media print{
+
+  .schedule-workflow,
+  .usage-guide,
+  #simulationPanel,
+  .schedule-final-actions{
+    display:none !important;
+  }
+
+}

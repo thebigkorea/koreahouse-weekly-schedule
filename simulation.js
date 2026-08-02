@@ -670,12 +670,21 @@ function getPositionGroup(slotPosition) {
       </div>
 
       <div class="simulation-actions">
-        <button type="button" data-sim-action="reload">직원 다시 불러오기</button>
-        <button type="button" data-sim-action="save">조건 저장</button>
-        <button type="button" class="primary" data-sim-action="generate">예상 근무표 생성</button>
-        <button type="button" data-sim-action="validate">조건 다시 검사</button>
-        <button type="button" class="success" data-sim-action="apply">실제 근무표에 적용</button>
-      </div>
+
+  <button
+    type="button"
+    data-sim-action="save">
+    💾 조건만 저장
+  </button>
+
+  <button
+    type="button"
+    class="primary"
+    data-sim-action="generate">
+    ⚙️ 자동배치 후 실제 근무표로 이동
+  </button>
+
+</div>
 
       <div id="simulationResultSummary" class="simulation-result-summary hidden"></div>
       <div id="simulationWorkdaySummary" class="simulation-workday-summary hidden"></div>
@@ -724,11 +733,33 @@ function getPositionGroup(slotPosition) {
         } else if (action === "save") {
           saveLocalData(true);
         } else if (action === "generate") {
-          collectUiState();
-          state.generated = generateSchedule();
-          applyGeneratedToExistingTable(state.generated);
-          saveLocalData(false);
-          validateCurrentTable();
+  collectUiState();
+
+  state.generated =
+    generateSchedule();
+
+  applyGeneratedToExistingTable(
+    state.generated
+  );
+
+  saveLocalData(false);
+  validateCurrentTable();
+
+  panel.classList.add("hidden");
+
+  const tableCard =
+    document.querySelector(".table-card");
+
+  if (tableCard) {
+    tableCard.scrollIntoView({
+      behavior:"smooth",
+      block:"start"
+    });
+  }
+
+  alert(
+    "인원 조건으로 다음주 근무표 초안을 만들었습니다.\n내용을 확인하고 수정한 후 ‘근무표 저장’을 눌러주세요."
+  );
         } else if (action === "validate") {
           collectUiState();
           validateCurrentTable();
@@ -2013,6 +2044,32 @@ if (!positionAvailable) {
 
   // 기존 script.js의 같은 이름 함수보다 나중에 로드되어 이 함수가 사용됩니다.
   window.toggleSimulationPanel = togglePanel;
+  window.openNextWeekSimulation =
+  async function() {
+
+    const nextMonday =
+      addDays(
+        getThisMondayText(),
+        7
+      );
+
+    await changeSimulationWeek(
+      nextMonday
+    );
+
+    const panel =
+      document.getElementById(
+        "simulationPanel"
+      );
+
+    if (panel) {
+      panel.scrollIntoView({
+        behavior:"smooth",
+        block:"start"
+      });
+    }
+
+  };
   window.loadSimulationData = initializeSimulation;
   window.saveSimulationConditions = () => saveLocalData(true);
   window.generateSimulationSchedule = () => {

@@ -1,6 +1,6 @@
 const API_URL =
   "https://script.google.com/macros/s/AKfycbyxNHxdt7xwXXp1OKib0PHHNc9qS1vXOlzaUCVsUJgqMmdpIcvVQsa2vY0hQgoSE-ab9Q/exec";
-  
+
 const DAYS = ["월", "화", "수", "목", "금", "토", "일"];
 
 const ROWS = [
@@ -377,18 +377,24 @@ async function saveWeeklySchedule(){
   }
 }
 
-async function loadPreviousWeekPattern() {
+async function loadPreviousWeekPattern(options = {}) {
   closeStaffManager();
 
-  const monday = document.getElementById("mondayInput").value;
+  const monday =
+    document.getElementById("mondayInput").value;
 
   if (!monday) {
     alert("주간 시작일을 선택하세요.");
-    return;
+    return false;
   }
 
-  const ok = confirm("전주 근무 패턴을 불러올까요? 현재 입력한 내용은 덮어씌워집니다.");
-  if (!ok) return;
+  if (options.skipConfirm !== true) {
+    const ok = confirm(
+      "전주 근무표를 불러올까요?\n현재 입력한 내용은 전주 근무표로 변경됩니다."
+    );
+
+    if (!ok) return false;
+  }
 
   showLoading(true);
 
@@ -400,7 +406,9 @@ async function loadPreviousWeekPattern() {
     const optionData = await optionRes.json();
 
     if (!optionData.ok) {
-      throw new Error(optionData.message || "직원목록 조회 실패");
+      throw new Error(
+        optionData.message || "직원목록 조회 실패"
+      );
     }
 
     weeklyOptions = optionData.data || [];
@@ -413,21 +421,37 @@ async function loadPreviousWeekPattern() {
     const patternData = await patternRes.json();
 
     if (!patternData.ok) {
-      throw new Error(patternData.message || "전주 패턴 조회 실패");
+      throw new Error(
+        patternData.message || "전주 근무표 조회 실패"
+      );
     }
 
     if (!patternData.data.found) {
-      alert(patternData.data.message || "전주 근무표가 없습니다.");
-      return;
+      alert(
+        patternData.data.message ||
+        "복사할 전주 근무표가 없습니다."
+      );
+
+      return false;
     }
 
-    applyWeeklyScheduleToTable(patternData.data.schedule);
+    applyWeeklyScheduleToTable(
+      patternData.data.schedule
+    );
 
-    alert("전주 패턴을 불러왔습니다. 현재 주간 D/O 직원은 자동 제외되었습니다.");
+    if (options.silent !== true) {
+      alert(
+        "전주 근무표를 불러왔습니다.\nD/O 직원은 자동 제외되었습니다."
+      );
+    }
+
+    return true;
 
   } catch (err) {
     console.error(err);
-    alert("전주 패턴을 불러오지 못했습니다.");
+    alert("전주 근무표를 불러오지 못했습니다.");
+    return false;
+
   } finally {
     showLoading(false);
   }
@@ -546,21 +570,46 @@ function escapeHtml(value){
 async function generateNextWeekSchedule() {
   closeStaffManager();
 
-  if (!confirm("다음주 근무표를 자동 생성하시겠습니까?")) {
-    return;
+  const ok = confirm(
+    "전주 근무표를 복사하여 다음주 근무표를 만들까요?"
+  );
+
+  if (!ok) return;
+
+  /*
+   * 현재 화면의 선택 날짜와 관계없이
+   * 오늘을 기준으로 정확한 다음주 월요일을 선택합니다.
+   */
+  const nextMonday = getMonday(new Date());
+
+  nextMonday.setDate(
+    nextMonday.getDate() + 7
+  );
+
+  document.getElementById("mondayInput").value =
+    formatDateInput(nextMonday);
+
+  const loaded =
+    await loadPreviousWeekPattern({
+      skipConfirm:true,
+      silent:true
+    });
+
+  if (!loaded) return;
+
+  const tableCard =
+    document.querySelector(".table-card");
+
+  if (tableCard) {
+    tableCard.scrollIntoView({
+      behavior:"smooth",
+      block:"start"
+    });
   }
 
-  const mondayInput = document.getElementById("mondayInput");
-
-  const d = new Date(mondayInput.value);
-  d.setDate(d.getDate() + 7);
-
-  mondayInput.value = formatDateInput(d);
-
-  await loadStaffOptions();
-  await loadPreviousWeekPattern();
-
-  alert("다음주 근무표가 생성되었습니다.\nD/O 직원은 자동 제외되었습니다.");
+  alert(
+    "다음주 근무표 초안을 만들었습니다.\n내용을 확인하고 수정한 후 ‘근무표 저장’을 눌러주세요."
+  );
 }
 
 function toggleStaffManager() {
