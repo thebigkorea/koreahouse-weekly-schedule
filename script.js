@@ -1,6 +1,47 @@
 const API_URL =
   "https://script.google.com/macros/s/AKfycbyxNHxdt7xwXXp1OKib0PHHNc9qS1vXOlzaUCVsUJgqMmdpIcvVQsa2vY0hQgoSE-ab9Q/exec";
 
+function waitForApi_(milliseconds) {
+  return new Promise(function(resolve) {
+    setTimeout(resolve, milliseconds);
+  });
+}
+
+async function fetchJsonWithRetry_(url, options = {}) {
+  let lastError;
+
+  for (let attempt = 1; attempt <= 3; attempt++) {
+    try {
+      const response = await fetch(url, {
+        ...options,
+        cache:"no-store"
+      });
+
+      if (!response.ok) {
+        throw new Error(
+          `API 응답 오류: ${response.status}`
+        );
+      }
+
+      const text = await response.text();
+      return JSON.parse(text);
+
+    } catch (error) {
+      lastError = error;
+      console.warn(
+        `API 호출 ${attempt}차 실패`,
+        error
+      );
+
+      if (attempt < 3) {
+        await waitForApi_(attempt * 1000);
+      }
+    }
+  }
+
+  throw lastError;
+}
+
 const DAYS = ["월", "화", "수", "목", "금", "토", "일"];
 
 const ROWS = [
@@ -109,8 +150,8 @@ async function loadStaffOptions(){
 
   try{
     const url = `${API_URL}?action=getStaffOptions&monday=${encodeURIComponent(monday)}&t=${Date.now()}`;
-    const res = await fetch(url);
-    const data = await res.json();
+    const data =
+  await fetchJsonWithRetry_(url);
 
     if(!data.ok){
       throw new Error(data.message || "직원목록 조회 실패");
@@ -402,8 +443,8 @@ async function loadPreviousWeekPattern(options = {}) {
     const optionUrl =
       `${API_URL}?action=getStaffOptions&monday=${encodeURIComponent(monday)}&t=${Date.now()}`;
 
-    const optionRes = await fetch(optionUrl);
-    const optionData = await optionRes.json();
+    const optionData =
+  await fetchJsonWithRetry_(optionUrl);
 
     if (!optionData.ok) {
       throw new Error(
@@ -417,8 +458,8 @@ async function loadPreviousWeekPattern(options = {}) {
     const patternUrl =
       `${API_URL}?action=getPreviousWeekSchedule&monday=${encodeURIComponent(monday)}&t=${Date.now()}`;
 
-    const patternRes = await fetch(patternUrl);
-    const patternData = await patternRes.json();
+    const patternData =
+  await fetchJsonWithRetry_(patternUrl);
 
     if (!patternData.ok) {
       throw new Error(
